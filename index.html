@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>हिंदी ऑडियो क्विज़ — लिंग & वचन (30 प्रश्न)</title>
+<title>हिंदी ऑडियो क्विज़ — लिंग & वचन</title>
 <style>
   body{font-family:'Noto Sans Devanagari',sans-serif;background:#fffdf9;margin:0;padding:20px;text-align:center}
   h1{color:#b71c1c}
@@ -17,8 +17,9 @@
 </head>
 <body>
 <h1>हिंदी ऑडियो क्विज़ — लिंग & वचन</h1>
+
 <div id="questionText">क्विज़ शुरू करने के लिए नीचे क्लिक करें</div>
-<input id="answerInput" placeholder="उत्तर बोलें या लिखें"/>
+<input id="answerInput" placeholder="उत्तर लिखें या बोलें"/>
 <div>
   <button id="submitBtn">जाँचें</button>
   <button id="speakBtn">🎙️ बोलें</button>
@@ -31,45 +32,47 @@
 <div id="score"></div>
 
 <script>
-const vachanQuestions=[
-  {word:"पाठशाला",answers:["पाठशालाएँ","पाठशालाएं"]},
-  {word:"माला",answers:["मालाएँ","मालाएं"]},
-  {word:"चिड़िया",answers:["चिड़ियाएँ","चिड़ियाएं"]},
-  {word:"गुड़िया",answers:["गुड़ियाँ","गुड़ियां"]},
-  {word:"लड़की",answers:["लड़कियाँ","लड़कियां"]},
-  {word:"नदी",answers:["नदियाँ","नदियां"]},
-  {word:"रोटी",answers:["रोटियाँ","रोटियां"]},
-  {word:"गाड़ी",answers:["गाड़ियाँ","गाड़ियों"]},
-  {word:"कुर्सी",answers:["कुर्सियाँ","कुर्सियां"]},
-  {word:"किताब",answers:["किताबें","किताबों"]},
-  {word:"लड़का",answers:["लड़के","लड़कें"]},
-  {word:"रुपया",answers:["रुपये","रुपए"]},
-  {word:"कमरा",answers:["कमरे","कमरों"]},
-  {word:"तस्वीर",answers:["तस्वीरें","तस्वीरों"]},
-  {word:"सेब",answers:["सेब","सेबों"]}
+const vachanQuestions = [
+  { word: "पाठशाला", answers:["पाठशालाएँ","पाठशालाएं"] },
+  { word: "माला", answers:["मालाएँ","मालाएं"] },
+  { word: "चिड़िया", answers:["चिड़ियाएँ","चिड़ियाएं"] },
+  { word: "गुड़िया", answers:["गुड़ियाँ","गुड़ियां"] },
+  { word: "लड़की", answers:["लड़कियाँ","लड़कियां"] },
+  { word: "नदी", answers:["नदियाँ","नदियां"] },
+  { word: "रोटी", answers:["रोटियाँ","रोटियां"] },
+  { word: "गाड़ी", answers:["गाड़ियाँ","गाड़ियां"] },
+  { word: "कुर्सी", answers:["कुर्सियाँ","कुर्सियां"] },
+  { word: "किताब", answers:["किताबें","किताबों"] },
+  { word: "लड़का", answers:["लड़के","लड़कें"] },
+  { word: "रुपया", answers:["रुपये","रुपए"] },
+  { word: "कमरा", answers:["कमरे","कमरों"] },
+  { word: "तस्वीर", answers:["तस्वीरें","तस्वीरों"] },
+  { word: "सेब", answers:["सेब","सेबों"] }
 ];
 
-const lingQuestions=[
-  {word:"राजा",male:["राजा"],female:["रानी"]},
-  {word:"रानी",male:["राजा"],female:["रानी"]},
-  {word:"शेर",male:["शेर"],female:["शेरनी"]},
-  {word:"शेरनी",male:["शेर"],female:["शेरनी"]},
-  {word:"पति",male:["पति"],female:["पत्नी"]},
-  {word:"पत्नी",male:["पति"],female:["पत्नी"]},
-  {word:"नाना",male:["नाना"],female:["नानी"]},
-  {word:"नानी",male:["नाना"],female:["नानी"]},
-  {word:"मुर्गा",male:["मुर्गा"],female:["मुर्गी"]},
-  {word:"मुर्गी",male:["मुर्गा"],female:["मुर्गी"]},
-  {word:"पुत्र",male:["पुत्र"],female:["पुत्री"]},
-  {word:"पुत्री",male:["पुत्र"],female:["पुत्री"]},
-  {word:"अध्यापक",male:["अध्यापक"],female:["अध्यापिका"]},
-  {word:"अध्यापिका",male:["अध्यापक"],female:["अध्यापिका"]},
-  {word:"सेठ",male:["सेठ"],female:["सेठानी","सेठनी"]}
+// लिंग प्रश्न बिना डुप्लिकेट
+const lingQuestions = [
+  { word: "राजा", ask:"स्त्रीलिंग", answers:["रानी"] },
+  { word: "शेर", ask:"स्त्रीलिंग", answers:["शेरनी"] },
+  { word: "पति", ask:"स्त्रीलिंग", answers:["पत्नी"] },
+  { word: "नाना", ask:"स्त्रीलिंग", answers:["नानी"] },
+  { word: "मुर्गा", ask:"स्त्रीलिंग", answers:["मुर्गी"] },
+  { word: "पुत्र", ask:"स्त्रीलिंग", answers:["पुत्री"] },
+  { word: "अध्यापक", ask:"स्त्रीलिंग", answers:["अध्यापिका"] },
+  { word: "सेठ", ask:"स्त्रीलिंग", answers:["सेठानी","सेठनी"] },
+  { word: "रानी", ask:"पुल्लिंग", answers:["राजा"] },
+  { word: "शेरनी", ask:"पुल्लिंग", answers:["शेर"] },
+  { word: "पत्नी", ask:"पुल्लिंग", answers:["पति"] },
+  { word: "नानी", ask:"पुल्लिंग", answers:["नाना"] },
+  { word: "मुर्गी", ask:"पुल्लिंग", answers:["मुर्गा"] },
+  { word: "पुत्री", ask:"पुल्लिंग", answers:["पुत्र"] },
+  { word: "अध्यापिका", ask:"पुल्लिंग", answers:["अध्यापक"] }
 ];
 
-let questions=[];
-vachanQuestions.forEach(q=>questions.push({type:"vachan",...q}));
-lingQuestions.forEach(q=>questions.push({type:"ling",...q}));
+let questions = [];
+vachanQuestions.forEach(q => questions.push({type:'vachan',...q}));
+lingQuestions.forEach(q => questions.push({type:'ling',...q}));
+
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
 shuffle(questions);
 
@@ -80,14 +83,12 @@ function chooseVoice(){
   const hi=v.filter(x=>/hi|hindi/i.test(x.lang||""));
   return hi.find(x=>/female|Aditi|Shruti|Google/.test(x.name))||hi[0]||v[0];
 }
+voice=chooseVoice();
 
-function speak(txt,onend){
+function speak(txt){
   lastSpoken=txt;
   const u=new SpeechSynthesisUtterance(txt);
-  u.lang="hi-IN";u.rate=0.95;
-  if(!voice)voice=chooseVoice();
-  if(voice)u.voice=voice;
-  if(onend)u.onend=onend;
+  u.lang="hi-IN";u.rate=0.95;if(voice)u.voice=voice;
   speechSynthesis.cancel();speechSynthesis.speak(u);
 }
 
@@ -111,18 +112,16 @@ const status=document.getElementById("status");
 function nextQ(){
   if(current>=questions.length)return endQuiz();
   const q=questions[current];
-  let prompt,expected;
-  if(q.type==="vachan"){prompt=`वचन बदलिए: ${q.word} का बहुवचन बताइए`;expected=q.answers;}
-  else{
-    if(["रानी","शेरनी","पत्नी","नानी","मुर्गी","पुत्री","अध्यापिका"].includes(q.word)){
-      prompt=`लिंग बदलिए: ${q.word} का पुल्लिंग बताइए`;expected=q.male;
-    }else{
-      prompt=`लिंग बदलिए: ${q.word} का स्त्रीलिंग बताइए`;expected=q.female;
-    }
+  let prompt;
+  if(q.type==="vachan"){
+    prompt=`वचन बदलिए: ${q.word} का बहुवचन बताइए`;
+  } else {
+    prompt=`लिंग बदलिए: ${q.word} का ${q.ask} बताइए`;
   }
-  q._expected=expected;
-  qText.textContent=prompt;ans.value="";feedback.textContent="";
-  ans.disabled=false;submitBtn.disabled=false;passBtn.disabled=false;replayBtn.disabled=false;
+  qText.textContent=prompt;
+  ans.value="";
+  feedback.textContent="";
+  ans.disabled=false;
   speak(prompt);
 }
 
@@ -131,11 +130,11 @@ function correct(){
   feedback.textContent="✅ सही उत्तर!";
   feedback.style.color="#1a7f3a";
   speak("सही उत्तर");
-  setTimeout(()=>{current++;nextQ();},4000); // slower move to next
+  setTimeout(()=>{current++;nextQ();},2500);
 }
 
 function wrong(){
-  feedback.textContent="❌ गलत उत्तर! फिर से बोलें या पास दबाएँ।";
+  feedback.textContent="❌ गलत उत्तर! फिर से प्रयास करें या पास दबाएँ।";
   feedback.style.color="#c00";
   speak("गलत उत्तर");
 }
@@ -143,28 +142,30 @@ function wrong(){
 submitBtn.onclick=()=>{
   const val=ans.value.trim();
   if(!val)return;
-  const list=questions[current]._expected;
-  if(list.some(x=>match(val,x)))correct();else wrong();
+  const q=questions[current];
+  if(q.answers.some(x=>match(val,x)))correct();else wrong();
 };
 
 passBtn.onclick=()=>{current++;nextQ();};
 replayBtn.onclick=()=>{if(lastSpoken)speak(lastSpoken);};
-
 playBtn.onclick=()=>{
-  current=0;score=0;
-  shuffle(questions);
-  qText.textContent="चलो, हम हिंदी प्रश्नोत्तरी शुरू करते हैं!";
-  speak("चलो, हम हिंदी प्रश्नोत्तरी शुरू करते हैं!",()=>{setTimeout(()=>{nextQ();},1200);});
+  current=0;score=0;shuffle(questions);
+  scoreDiv.textContent="";
+  nextQ();
 };
 
 try{
   const R=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(R){
-    recognition=new R();recognition.lang="hi-IN";recognition.interimResults=false;recognition.maxAlternatives=1;
+    recognition=new R();
+    recognition.lang="hi-IN";
+    recognition.interimResults=false;
+    recognition.maxAlternatives=1;
     recognition.onresult=e=>{
-      const txt=e.results[0][0].transcript.trim();ans.value=txt;
-      const list=questions[current]._expected;
-      if(list.some(x=>match(txt,x)))correct();else wrong();
+      const txt=e.results[0][0].transcript.trim();
+      ans.value=txt;
+      const q=questions[current];
+      if(q.answers.some(x=>match(txt,x)))correct();else wrong();
     };
     recognition.onerror=e=>{status.textContent="🎙️ त्रुटि: "+e.error;};
     speakBtn.onclick=()=>{status.textContent="🎙️ सुन रहा हूँ";try{recognition.start();}catch{};};
