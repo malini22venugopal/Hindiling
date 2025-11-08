@@ -57,17 +57,17 @@ const vachanQuestions = [
   { word: "पाठशाला", answers:["पाठशालाएँ","पाठशालाएं","पाठशालायें"] },
   { word: "माला", answers:["मालाएँ","मालाएं","मालायें"] },
   { word: "चिड़िया", answers:["चिड़ियाएँ","चिड़ियाएं","चिड़ियायें"] },
-  { word: "गुड़िया", answers:["गुड़ियाँ","गुड़ियां","गुड़ियाँ"] },
-  { word: "लड़की", answers:["लड़कियाँ","लड़कियां","लड़कियाँ"] },
-  { word: "नदी", answers:["नदियाँ","नदियां","नदियाँ"] },
-  { word: "रोटी", answers:["रोटियाँ","रोटियां","रोटियाँ"] },
-  { word: "गाड़ी", answers:["गाड़ियाँ","गाड़ियों","गाड़ियों"] },
-  { word: "कुर्सी", answers:["कुर्सियाँ","कुर्सियां","कुर्सियाँ"] },
-  { word: "किताब", answers:["किताबें","किताबों","किताबें"] },
+  { word: "गुड़िया", answers:["गुड़ियाँ","गुड़ियां"] },
+  { word: "लड़की", answers:["लड़कियाँ","लड़कियां"] },
+  { word: "नदी", answers:["नदियाँ","नदियां"] },
+  { word: "रोटी", answers:["रोटियाँ","रोटियां"] },
+  { word: "गाड़ी", answers:["गाड़ियाँ","गाड़ियों"] },
+  { word: "कुर्सी", answers:["कुर्सियाँ","कुर्सियां"] },
+  { word: "किताब", answers:["किताबें","किताबों"] },
   { word: "लड़का", answers:["लड़के","लड़कें","लड़कों"] },
-  { word: "रुपया", answers:["रुपये","रुपयों","रुपए"] },
-  { word: "कमरा", answers:["कमरे","कमरों","कमरे"] },
-  { word: "तस्वीर", answers:["तस्वीरें","तस्वीरों","तस्वीरें"] },
+  { word: "रुपया", answers:["रुपये","रुपए"] },
+  { word: "कमरा", answers:["कमरे","कमरों"] },
+  { word: "तस्वीर", answers:["तस्वीरें","तस्वीरों"] },
   { word: "सेब", answers:["सेब","सेबों"] }
 ];
 
@@ -129,7 +129,7 @@ function speak(txt){
 
 // -------------------- Helpers --------------------
 function normalize(s){return (s||"").normalize("NFD").replace(/[\u093C-\u094D\u0964-\u0965\s\p{P}]/gu,"").toLowerCase();}
-function lev(a,b){if(a===b)return 0;let m=[],al=a.length,bl=b.length;for(let i=0;i<=al;i++){m[i]=[i];for(let j=1;j<=bl;j++)m[i][j]=i===0?j:0;}for(let i=1;i<=al;i++){for(let j=1;j<=bl;j++){m[i][j]=a[i-1]===b[j-1]?m[i-1][j-1]:Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+1);}}return m[al][bl];}
+function lev(a,b){if(a===b)return 0;let m=[],al=a.length,bl=b.length;for(let i=0;i<=al;i++){m[i]=[i];for(let j=1;j<=bl;j++){m[i][j]=i===0?j:0;}for(let i=1;i<=al;i++){for(let j=1;j<=bl;j++){m[i][j]=a[i-1]===b[j-1]?m[i-1][j-1]:Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+1);}}return m[al][bl];}
 function match(a,b){a=normalize(a);b=normalize(b);if(a===b)return true;return lev(a,b)<=Math.max(1,Math.floor(Math.max(a.length,b.length)*0.25));}
 
 // -------------------- Question Logic --------------------
@@ -138,18 +138,42 @@ function nextQ(){
   const q=questions[current];
   let prompt,expected;
   if(q.type==="vachan"){prompt=`वचन बदलिए: ${q.word} का बहुवचन बताइए`;expected=q.answers;}
-  else{if(Math.random()<0.5){prompt=`लिंग बदलिए: ${q.word} का स्त्रीलिंग बताइए`;expected=q.female;}else{prompt=`लिंग बदलिए: ${q.word} का पुल्लिंग बताइए`;expected=q.male;}}
+  else{
+    const femaleWords=["रानी","शेरनी","पत्नी","नानी","मुर्गी","पुत्री","अध्यापिका"];
+    if(femaleWords.includes(q.word)){prompt=`लिंग बदलिए: ${q.word} का पुल्लिंग बताइए`;expected=q.male;}
+    else{prompt=`लिंग बदलिए: ${q.word} का स्त्रीलिंग बताइए`;expected=q.female;}
+  }
   q._expected=expected;
   qText.textContent=prompt; ans.value=""; feedback.textContent=""; status.textContent=""; ans.disabled=false;
   submitBtn.disabled=false; passBtn.disabled=false; replayBtn.disabled=false; if(recognitionAvailable)speakBtn.disabled=false;
   setTimeout(()=>speak(prompt),400);
 }
-function correct(){score++;feedback.textContent="✅ सही उत्तर!";feedback.style.color="#1a7f3a";speak("सही उत्तर");setTimeout(()=>{current++;nextQ();},700);}
-function wrong(){feedback.textContent="❌ गलत उत्तर! फिर से बोलें या Pass दबाएँ।";feedback.style.color="#c00";speak("गलत उत्तर");}
 
-// -------------------- Events --------------------
+function correct(){
+  score++;
+  feedback.textContent="✅ सही उत्तर!";
+  feedback.style.color="#1a7f3a";
+  ans.disabled=true; submitBtn.disabled=true; passBtn.disabled=true;
+  speak("सही उत्तर");
+  setTimeout(()=>{current++; nextQ();},2500);
+}
+
+function wrong(showAnswer=false){
+  feedback.style.color="#c00";
+  ans.disabled=true; submitBtn.disabled=true; passBtn.disabled=true;
+  if(showAnswer){
+    feedback.textContent="❌ गलत उत्तर! सही उत्तर: "+questions[current]._expected.join(", ");
+    speak("गलत उत्तर, सही उत्तर: "+questions[current]._expected[0]);
+    setTimeout(()=>{current++; nextQ();},3000);
+  }else{
+    feedback.textContent="❌ गलत उत्तर! फिर से बोलें या Pass दबाएँ।";
+    speak("गलत उत्तर");
+  }
+}
+
+// -------------------- Button Events --------------------
 submitBtn.onclick=()=>{const val=ans.value.trim();if(!val)return;const list=questions[current]._expected;if(list.some(x=>match(val,x)))correct();else wrong();};
-passBtn.onclick=()=>{current++;nextQ();};
+passBtn.onclick=()=>{wrong(true);};
 replayBtn.onclick=()=>{if(lastSpoken)speak(lastSpoken);};
 playBtn.onclick=()=>{current=0;score=0;shuffle(questions);nextQ();};
 startBtn.onclick=()=>{
@@ -158,19 +182,37 @@ startBtn.onclick=()=>{
   setTimeout(()=>playBtn.click(),900);
 };
 
-// -------------------- Recognition --------------------
+// -------------------- Speech Recognition --------------------
 try{
   const R=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(R){recognition=new R();recognition.lang="hi-IN";recognition.interimResults=false;recognition.maxAlternatives=1;
-    recognition.onresult=e=>{const txt=e.results[0][0].transcript.trim();ans.value=txt;
-      const list=questions[current]._expected;if(list.some(x=>match(txt,x)))correct();else wrong();};
-    recognition.onerror=e=>{status.textContent="🎙️ त्रुटि: "+e.error;};
-    speakBtn.onclick=()=>{status.textContent="🎙️ सुन रहा हूँ";try{recognition.start();}catch{}};
+  if(R){
+    recognition=new R();
+    recognition.lang="hi-IN";
+    recognition.interimResults=false;
+    recognition.maxAlternatives=1;
+    recognition.onresult=e=>{
+      const txt=e.results[0][0].transcript.trim(); ans.value=txt;
+      const list=questions[current]._expected;
+      if(list.some(x=>match(txt,x))) correct(); else wrong();
+      speakBtn.disabled=false; status.textContent="";
+    };
+    recognition.onerror=e=>{status.textContent="🎙️ त्रुटि: "+e.error; speakBtn.disabled=false;};
+    speakBtn.onclick=()=>{
+      status.textContent="🎙️ सुन रहा हूँ…";
+      speakBtn.disabled=true;
+      try{recognition.start();}catch{}
+    };
     recognitionAvailable=true;
   }
 }catch(e){console.warn(e);}
-function endQuiz(){qText.textContent="क्विज़ समाप्त!";ans.disabled=true;submitBtn.disabled=passBtn.disabled=speakBtn.disabled=replayBtn.disabled=true;
-scoreDiv.textContent=`आपका स्कोर: ${score} / ${questions.length}`;speak(`क्विज़ समाप्त। आपका स्कोर ${score} में से ${questions.length} है।`);}
+
+// -------------------- End Quiz --------------------
+function endQuiz(){
+  qText.textContent="क्विज़ समाप्त!";
+  ans.disabled=true; submitBtn.disabled=passBtn.disabled=speakBtn.disabled=replayBtn.disabled=true;
+  scoreDiv.textContent=`आपका स्कोर: ${score} / ${questions.length}`;
+  speak(`क्विज़ समाप्त। आपका स्कोर ${score} में से ${questions.length} है।`);
+}
 </script>
 </body>
 </html>
