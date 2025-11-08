@@ -112,6 +112,7 @@ const feedback=document.getElementById("feedbackText");
 const scoreDiv=document.getElementById("score");
 
 let current=0,score=0,lastSpoken="",recognitionAvailable=false,recognition=null,voice=null;
+let wrongList = []; // store wrong answers
 
 // -------------------- Voice Functions --------------------
 function chooseVoice(){
@@ -134,21 +135,38 @@ function match(a,b){a=normalize(a);b=normalize(b);if(a===b)return true;return le
 
 // -------------------- Question Logic --------------------
 function nextQ(){
-  if(current>=questions.length)return endQuiz();
+  if(current>=questions.length) return endQuiz();
   const q=questions[current];
-  let prompt,expected;
-  if(q.type==="vachan"){prompt=`वचन बदलिए: ${q.word} का बहुवचन बताइए`;expected=q.answers;}
-  else{
+  let prompt, expected;
+
+  if(q.type==="vachan"){
+    prompt = `वचन बदलिए: ${q.word} का बहुवचन बताइए`;
+    expected = q.answers;
+  } else { 
+    // Gender logic
     const femaleWords=["रानी","शेरनी","पत्नी","नानी","मुर्गी","पुत्री","अध्यापिका"];
-    if(femaleWords.includes(q.word)){prompt=`लिंग बदलिए: ${q.word} का पुल्लिंग बताइए`;expected=q.male;}
-    else{prompt=`लिंग बदलिए: ${q.word} का स्त्रीलिंग बताइए`;expected=q.female;}
+    const maleWords=["राजा","शेर","पति","नाना","मुर्गा","पुत्र","अध्यापक","सेठ","पिता","घोड़ा","शिष्य","आदमी","अभिनेता","भाई"];
+
+    if(femaleWords.includes(q.word)) {
+      prompt = `लिंग बदलिए: ${q.word} का पुल्लिंग बताइए`;
+      expected = q.male;
+    } else if(maleWords.includes(q.word)) {
+      prompt = `लिंग बदलिए: ${q.word} का स्त्रीलिंग बताइए`;
+      expected = q.female;
+    } else {
+      if(Math.random()<0.5){prompt = `लिंग बदलिए: ${q.word} का स्त्रीलिंग बताइए`; expected=q.female;}
+      else {prompt = `लिंग बदलिए: ${q.word} का पुल्लिंग बताइए`; expected=q.male;}
+    }
   }
-  q._expected=expected;
-  qText.textContent=prompt; ans.value=""; feedback.textContent=""; status.textContent=""; ans.disabled=false;
-  submitBtn.disabled=false; passBtn.disabled=false; replayBtn.disabled=false; if(recognitionAvailable)speakBtn.disabled=false;
+
+  q._expected = expected;
+  qText.textContent = prompt; ans.value=""; feedback.textContent=""; status.textContent="";
+  ans.disabled=false; submitBtn.disabled=false; passBtn.disabled=false; replayBtn.disabled=false; 
+  if(recognitionAvailable) speakBtn.disabled=false;
   setTimeout(()=>speak(prompt),400);
 }
 
+// -------------------- Answer Functions --------------------
 function correct(){
   score++;
   feedback.textContent="✅ सही उत्तर!";
@@ -161,9 +179,11 @@ function correct(){
 function wrong(showAnswer=false){
   feedback.style.color="#c00";
   ans.disabled=true; submitBtn.disabled=true; passBtn.disabled=true;
+  
   if(showAnswer){
     feedback.textContent="❌ गलत उत्तर! सही उत्तर: "+questions[current]._expected.join(", ");
     speak("गलत उत्तर, सही उत्तर: "+questions[current]._expected[0]);
+    wrongList.push(questions[current]);
     setTimeout(()=>{current++; nextQ();},3000);
   }else{
     feedback.textContent="❌ गलत उत्तर! फिर से बोलें या Pass दबाएँ।";
@@ -175,7 +195,7 @@ function wrong(showAnswer=false){
 submitBtn.onclick=()=>{const val=ans.value.trim();if(!val)return;const list=questions[current]._expected;if(list.some(x=>match(val,x)))correct();else wrong();};
 passBtn.onclick=()=>{wrong(true);};
 replayBtn.onclick=()=>{if(lastSpoken)speak(lastSpoken);};
-playBtn.onclick=()=>{current=0;score=0;shuffle(questions);nextQ();};
+playBtn.onclick=()=>{current=0;score=0;wrongList=[];shuffle(questions);nextQ();};
 startBtn.onclick=()=>{
   startScreen.style.display="none";questionArea.style.display="block";
   voice=chooseVoice();speak("चलो, हम हिंदी प्रश्नोत्तरी शुरू करते हैं। तैयार हो जाइए।");
@@ -212,6 +232,13 @@ function endQuiz(){
   ans.disabled=true; submitBtn.disabled=passBtn.disabled=speakBtn.disabled=replayBtn.disabled=true;
   scoreDiv.textContent=`आपका स्कोर: ${score} / ${questions.length}`;
   speak(`क्विज़ समाप्त। आपका स्कोर ${score} में से ${questions.length} है।`);
+
+  if(wrongList.length>0){
+    setTimeout(()=>{
+      let wrongWords = wrongList.map(q=>q.word).join(", ");
+      alert("गलत उत्तर वाले शब्द जिन्हें दोबारा देखें: "+wrongWords);
+    },1500);
+  }
 }
 </script>
 </body>
