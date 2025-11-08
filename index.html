@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="hi">
 <head>
@@ -32,45 +31,45 @@
 <div id="score"></div>
 
 <script>
-const vachanQuestions = [
-  { word: "पाठशाला", answers:["पाठशालाएँ","पाठशालाएं"] },
-  { word: "माला", answers:["मालाएँ","मालाएं"] },
-  { word: "चिड़िया", answers:["चिड़ियाएँ","चिड़ियाएं"] },
-  { word: "गुड़िया", answers:["गुड़ियाँ","गुड़ियां"] },
-  { word: "लड़की", answers:["लड़कियाँ","लड़कियां"] },
-  { word: "नदी", answers:["नदियाँ","नदियां"] },
-  { word: "रोटी", answers:["रोटियाँ","रोटियां"] },
-  { word: "गाड़ी", answers:["गाड़ियाँ","गाड़ियों"] },
-  { word: "कुर्सी", answers:["कुर्सियाँ","कुर्सियां"] },
-  { word: "किताब", answers:["किताबें","किताबों"] },
-  { word: "लड़का", answers:["लड़के","लड़कें"] },
-  { word: "रुपया", answers:["रुपये","रुपए"] },
-  { word: "कमरा", answers:["कमरे","कमरों"] },
-  { word: "तस्वीर", answers:["तस्वीरें","तस्वीरों"] },
-  { word: "सेब", answers:["सेब","सेबों"] }
+const vachanQuestions=[
+  {word:"पाठशाला",answers:["पाठशालाएँ","पाठशालाएं"]},
+  {word:"माला",answers:["मालाएँ","मालाएं"]},
+  {word:"चिड़िया",answers:["चिड़ियाएँ","चिड़ियाएं"]},
+  {word:"गुड़िया",answers:["गुड़ियाँ","गुड़ियां"]},
+  {word:"लड़की",answers:["लड़कियाँ","लड़कियां"]},
+  {word:"नदी",answers:["नदियाँ","नदियां"]},
+  {word:"रोटी",answers:["रोटियाँ","रोटियां"]},
+  {word:"गाड़ी",answers:["गाड़ियाँ","गाड़ियों"]},
+  {word:"कुर्सी",answers:["कुर्सियाँ","कुर्सियां"]},
+  {word:"किताब",answers:["किताबें","किताबों"]},
+  {word:"लड़का",answers:["लड़के","लड़कें"]},
+  {word:"रुपया",answers:["रुपये","रुपए"]},
+  {word:"कमरा",answers:["कमरे","कमरों"]},
+  {word:"तस्वीर",answers:["तस्वीरें","तस्वीरों"]},
+  {word:"सेब",answers:["सेब","सेबों"]}
 ];
 
-const lingQuestions = [
-  { word: "राजा", male:["राजा"], female:["रानी"] },
-  { word: "रानी", male:["राजा"], female:["रानी"] },
-  { word: "शेर", male:["शेर"], female:["शेरनी"] },
-  { word: "शेरनी", male:["शेर"], female:["शेरनी"] },
-  { word: "पति", male:["पति"], female:["पत्नी"] },
-  { word: "पत्नी", male:["पति"], female:["पत्नी"] },
-  { word: "नाना", male:["नाना"], female:["नानी"] },
-  { word: "नानी", male:["नाना"], female:["नानी"] },
-  { word: "मुर्गा", male:["मुर्गा"], female:["मुर्गी"] },
-  { word: "मुर्गी", male:["मुर्गा"], female:["मुर्गी"] },
-  { word: "पुत्र", male:["पुत्र"], female:["पुत्री"] },
-  { word: "पुत्री", male:["पुत्र"], female:["पुत्री"] },
-  { word: "अध्यापक", male:["अध्यापक"], female:["अध्यापिका"] },
-  { word: "अध्यापिका", male:["अध्यापक"], female:["अध्यापिका"] },
-  { word: "सेठ", male:["सेठ"], female:["सेठानी","सेठनी"] }
+const lingQuestions=[
+  {word:"राजा",male:["राजा"],female:["रानी"]},
+  {word:"रानी",male:["राजा"],female:["रानी"]},
+  {word:"शेर",male:["शेर"],female:["शेरनी"]},
+  {word:"शेरनी",male:["शेर"],female:["शेरनी"]},
+  {word:"पति",male:["पति"],female:["पत्नी"]},
+  {word:"पत्नी",male:["पति"],female:["पत्नी"]},
+  {word:"नाना",male:["नाना"],female:["नानी"]},
+  {word:"नानी",male:["नाना"],female:["नानी"]},
+  {word:"मुर्गा",male:["मुर्गा"],female:["मुर्गी"]},
+  {word:"मुर्गी",male:["मुर्गा"],female:["मुर्गी"]},
+  {word:"पुत्र",male:["पुत्र"],female:["पुत्री"]},
+  {word:"पुत्री",male:["पुत्र"],female:["पुत्री"]},
+  {word:"अध्यापक",male:["अध्यापक"],female:["अध्यापिका"]},
+  {word:"अध्यापिका",male:["अध्यापक"],female:["अध्यापिका"]},
+  {word:"सेठ",male:["सेठ"],female:["सेठानी","सेठनी"]}
 ];
 
-let questions = [];
-vachanQuestions.forEach(q => questions.push({type:'vachan',...q}));
-lingQuestions.forEach(q => questions.push({type:'ling',...q}));
+let questions=[];
+vachanQuestions.forEach(q=>questions.push({type:"vachan",...q}));
+lingQuestions.forEach(q=>questions.push({type:"ling",...q}));
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
 shuffle(questions);
 
@@ -81,12 +80,17 @@ function chooseVoice(){
   const hi=v.filter(x=>/hi|hindi/i.test(x.lang||""));
   return hi.find(x=>/female|Aditi|Shruti|Google/.test(x.name))||hi[0]||v[0];
 }
-function speak(txt){
+
+function speak(txt,onend){
   lastSpoken=txt;
   const u=new SpeechSynthesisUtterance(txt);
-  u.lang="hi-IN";u.rate=0.95;if(voice)u.voice=voice;
+  u.lang="hi-IN";u.rate=0.95;
+  if(!voice)voice=chooseVoice();
+  if(voice)u.voice=voice;
+  if(onend)u.onend=onend;
   speechSynthesis.cancel();speechSynthesis.speak(u);
 }
+
 function normalize(s){return (s||"").normalize("NFD").replace(/[\u093C-\u094D\u0964-\u0965\s\p{P}]/gu,"").toLowerCase();}
 function lev(a,b){if(a===b)return 0;let m=[],al=a.length,bl=b.length;
   for(let i=0;i<=al;i++){m[i]=[i];for(let j=1;j<=bl;j++)m[i][j]=i===0?j:0;}
@@ -109,10 +113,10 @@ function nextQ(){
   const q=questions[current];
   let prompt,expected;
   if(q.type==="vachan"){prompt=`वचन बदलिए: ${q.word} का बहुवचन बताइए`;expected=q.answers;}
-  else {
+  else{
     if(["रानी","शेरनी","पत्नी","नानी","मुर्गी","पुत्री","अध्यापिका"].includes(q.word)){
       prompt=`लिंग बदलिए: ${q.word} का पुल्लिंग बताइए`;expected=q.male;
-    } else {
+    }else{
       prompt=`लिंग बदलिए: ${q.word} का स्त्रीलिंग बताइए`;expected=q.female;
     }
   }
@@ -122,30 +126,55 @@ function nextQ(){
   speak(prompt);
 }
 
-function correct(){score++;feedback.textContent="✅ सही उत्तर!";feedback.style.color="#1a7f3a";
+function correct(){
+  score++;
+  feedback.textContent="✅ सही उत्तर!";
+  feedback.style.color="#1a7f3a";
   speak("सही उत्तर");
-  setTimeout(()=>{current++;nextQ();},4000);
+  setTimeout(()=>{current++;nextQ();},4000); // slower move to next
 }
-function wrong(){feedback.textContent="❌ गलत उत्तर! फिर से बोलें या पास दबाएँ।";feedback.style.color="#c00";speak("गलत उत्तर");}
-submitBtn.onclick=()=>{const val=ans.value.trim();if(!val)return;const list=questions[current]._expected;
-  if(list.some(x=>match(val,x)))correct();else wrong();};
+
+function wrong(){
+  feedback.textContent="❌ गलत उत्तर! फिर से बोलें या पास दबाएँ।";
+  feedback.style.color="#c00";
+  speak("गलत उत्तर");
+}
+
+submitBtn.onclick=()=>{
+  const val=ans.value.trim();
+  if(!val)return;
+  const list=questions[current]._expected;
+  if(list.some(x=>match(val,x)))correct();else wrong();
+};
+
 passBtn.onclick=()=>{current++;nextQ();};
 replayBtn.onclick=()=>{if(lastSpoken)speak(lastSpoken);};
-playBtn.onclick=()=>{current=0;score=0;shuffle(questions);nextQ();};
+
+playBtn.onclick=()=>{
+  current=0;score=0;
+  shuffle(questions);
+  qText.textContent="चलो, हम हिंदी प्रश्नोत्तरी शुरू करते हैं!";
+  speak("चलो, हम हिंदी प्रश्नोत्तरी शुरू करते हैं!",()=>{setTimeout(()=>{nextQ();},1200);});
+};
 
 try{
   const R=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(R){
     recognition=new R();recognition.lang="hi-IN";recognition.interimResults=false;recognition.maxAlternatives=1;
-    recognition.onresult=e=>{const txt=e.results[0][0].transcript.trim();ans.value=txt;
-      const list=questions[current]._expected;if(list.some(x=>match(txt,x)))correct();else wrong();};
+    recognition.onresult=e=>{
+      const txt=e.results[0][0].transcript.trim();ans.value=txt;
+      const list=questions[current]._expected;
+      if(list.some(x=>match(txt,x)))correct();else wrong();
+    };
     recognition.onerror=e=>{status.textContent="🎙️ त्रुटि: "+e.error;};
     speakBtn.onclick=()=>{status.textContent="🎙️ सुन रहा हूँ";try{recognition.start();}catch{};};
   }
 }catch(e){console.warn(e);}
+
 function endQuiz(){
   qText.textContent="क्विज़ समाप्त!";
-  ans.disabled=true;submitBtn.disabled=passBtn.disabled=speakBtn.disabled=replayBtn.disabled=true;
+  ans.disabled=true;
+  submitBtn.disabled=passBtn.disabled=speakBtn.disabled=replayBtn.disabled=true;
   scoreDiv.textContent=`आपका स्कोर: ${score} / ${questions.length}`;
   speak(`क्विज़ समाप्त। आपका स्कोर ${score} में से ${questions.length} है।`);
 }
