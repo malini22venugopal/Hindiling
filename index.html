@@ -33,24 +33,24 @@
 
 <script>
 const vachanQuestions = [
-  { word: "पाठशाला", answers:["पाठशालाएँ","पाठशालाएं"] },
-  { word: "माला", answers:["मालाएँ","मालाएं"] },
-  { word: "चिड़िया", answers:["चिड़ियाएँ","चिड़ियाएं"] },
-  { word: "गुड़िया", answers:["गुड़ियाँ","गुड़ियां"] },
-  { word: "लड़की", answers:["लड़कियाँ","लड़कियां"] },
-  { word: "नदी", answers:["नदियाँ","नदियां"] },
-  { word: "रोटी", answers:["रोटियाँ","रोटियां"] },
-  { word: "गाड़ी", answers:["गाड़ियाँ","गाड़ियां"] },
-  { word: "कुर्सी", answers:["कुर्सियाँ","कुर्सियां"] },
-  { word: "किताब", answers:["किताबें","किताबों"] },
-  { word: "लड़का", answers:["लड़के","लड़कें"] },
+  { word: "पाठशाला", answers:["पाठशालाएँ","पाठशालायें"] },
+  { word: "माला", answers:["मालाएँ","मालायें"] },
+  { word: "चिड़िया", answers:["चिड़ियाएँ","चिड़ियायें"] },
+  { word: "गुड़िया", answers:["गुड़ियाँ","गुड़ियायें"] },
+  { word: "लड़की", answers:["लड़कियाँ","लड़कियायें"] },
+  { word: "नदी", answers:["नदियाँ","नदियायें"] },
+  { word: "रोटी", answers:["रोटियाँ","रोटियायें"] },
+  { word: "गाड़ी", answers:["गाड़ियाँ","गाड़ियायें"] },
+  { word: "कुर्सी", answers:["कुर्सियाँ","कुर्सियायें"] },
+  { word: "किताब", answers:["किताबें"] },
+  { word: "लड़का", answers:["लड़के"] },
   { word: "रुपया", answers:["रुपये","रुपए"] },
-  { word: "कमरा", answers:["कमरे","कमरों"] },
-  { word: "तस्वीर", answers:["तस्वीरें","तस्वीरों"] },
-  { word: "सेब", answers:["सेब","सेबों"] }
+  { word: "कमरा", answers:["कमरे"] },
+  { word: "तस्वीर", answers:["तस्वीरें"] },
+  { word: "सेब", answers:["सेब"] }
 ];
 
-// लिंग प्रश्न बिना डुप्लिकेट
+// ✅ लिंग प्रश्न — केवल एक बार प्रति जोड़ी, सही स्पेलिंग सहित
 const lingQuestions = [
   { word: "राजा", ask:"स्त्रीलिंग", answers:["रानी"] },
   { word: "शेर", ask:"स्त्रीलिंग", answers:["शेरनी"] },
@@ -59,14 +59,7 @@ const lingQuestions = [
   { word: "मुर्गा", ask:"स्त्रीलिंग", answers:["मुर्गी"] },
   { word: "पुत्र", ask:"स्त्रीलिंग", answers:["पुत्री"] },
   { word: "अध्यापक", ask:"स्त्रीलिंग", answers:["अध्यापिका"] },
-  { word: "सेठ", ask:"स्त्रीलिंग", answers:["सेठानी","सेठनी"] },
-  { word: "रानी", ask:"पुल्लिंग", answers:["राजा"] },
-  { word: "शेरनी", ask:"पुल्लिंग", answers:["शेर"] },
-  { word: "पत्नी", ask:"पुल्लिंग", answers:["पति"] },
-  { word: "नानी", ask:"पुल्लिंग", answers:["नाना"] },
-  { word: "मुर्गी", ask:"पुल्लिंग", answers:["मुर्गा"] },
-  { word: "पुत्री", ask:"पुल्लिंग", answers:["पुत्र"] },
-  { word: "अध्यापिका", ask:"पुल्लिंग", answers:["अध्यापक"] }
+  { word: "सेठ", ask:"स्त्रीलिंग", answers:["सेठानी","सेठनी"] }
 ];
 
 let questions = [];
@@ -92,7 +85,12 @@ function speak(txt){
   speechSynthesis.cancel();speechSynthesis.speak(u);
 }
 
-function normalize(s){return (s||"").normalize("NFD").replace(/[\u093C-\u094D\u0964-\u0965\s\p{P}]/gu,"").toLowerCase();}
+function normalize(s){
+  return (s||"").normalize("NFD")
+    .replace(/[\u093C-\u094D\u0964-\u0965\s\p{P}]/gu,"")
+    .replace(/[ँं]/g,"")
+    .toLowerCase();
+}
 function lev(a,b){if(a===b)return 0;let m=[],al=a.length,bl=b.length;
   for(let i=0;i<=al;i++){m[i]=[i];for(let j=1;j<=bl;j++)m[i][j]=i===0?j:0;}
   for(let i=1;i<=al;i++){for(let j=1;j<=bl;j++){m[i][j]=a[i-1]===b[j-1]?m[i-1][j-1]:Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+1);}}return m[al][bl];}
