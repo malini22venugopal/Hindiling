@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="hi">
 <head>
@@ -37,13 +38,13 @@
 
   <div id="feedback"></div>
   <div id="score"></div>
-  <div class="small">Chrome (desktop / HTTPS) में सबसे अच्छा काम करता है। पहली बार माइक्रोफ़ोन अनुमति दें।</div>
+  <div class="small">Chrome (desktop / HTTPS/localhost) पर सबसे अच्छा काम करता है — पहली बार माइक्रोफ़ोन अनुमति दें।</div>
 
 <script>
-/* ===========================
-   Question sets
-   15 vachan (clean) + 15 ling (random direction no duplicates)
-   =========================== */
+/* ---------------------------
+  FINAL QUESTION SETS (30)
+  15 vachan (clean) + 15 ling (one-direction per pair chosen randomly)
+  --------------------------- */
 const vachanQuestions = [
   { word: "किताब", answers:["किताबें","किताबे"] },
   { word: "लड़का", answers:["लड़के","लड़कें"] },
@@ -73,7 +74,7 @@ const lingPairs = [
   ["सेठ","सेठानी"]
 ];
 
-/* Build ling questions — one direction per pair chosen randomly to avoid duplication */
+/* Build ling questions (one direction per pair to avoid duplicates) */
 function buildLingQuestions(){
   const out=[];
   lingPairs.forEach(([m,f])=>{
@@ -83,22 +84,20 @@ function buildLingQuestions(){
   return out;
 }
 
-/* Build pool (vachan + ling), then shuffle */
+/* Build the full pool and shuffle */
 function buildPool(){
   const pool = [];
   vachanQuestions.forEach(q => pool.push({ type:'vachan', word:q.word, answers:q.answers }));
-  const ling = buildLingQuestions();
-  ling.forEach(q => pool.push(q));
+  const l = buildLingQuestions();
+  l.forEach(q => pool.push(q));
   shuffle(pool);
   return pool;
 }
-
-/* Fisher-Yates shuffle */
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } }
 
-/* ===========================
-   Voice helpers
-   =========================== */
+/* ---------------------------
+  Voice / speak helpers
+  --------------------------- */
 let chosenVoice = null;
 function pickFemaleHindiVoice(){
   const voices = speechSynthesis.getVoices();
@@ -122,12 +121,12 @@ function speak(text, onend){
   }catch(e){ console.warn(e); }
 }
 
-/* ===========================
-   Matching helpers (Hindi tolerance)
-   - normalizeHindi: unify matras, remove punctuation/spaces
-   - lcsLen for ordered similarity
-   - Special strict rule: expectedNormalized === 'सेब' => accept only exact 'सेब'
-   =========================== */
+/* ---------------------------
+  Matching helpers (tolerant Hindi)
+  - normalizeHindi: unify matras, remove punctuation/spaces
+  - lcsLen for ordered similarity
+  - special strict rule: when expectedNormalized === 'सेब' accept only exact 'सेब'
+  --------------------------- */
 function normalizeHindi(s){
   if(!s) return '';
   s = s.toString().normalize('NFD');
@@ -137,8 +136,8 @@ function normalizeHindi(s){
   s = s.replace(/[ृ]/g,'र');
   s = s.replace(/[ीि]/g,'ि');
   s = s.replace(/[ूु]/g,'ु');
-  s = s.replace(/[^\u0900-\u097F]/g,''); // remove non-Devanagari
-  s = s.replace(/्+/g,''); // drop virama
+  s = s.replace(/[^\u0900-\u097F]/g,'');
+  s = s.replace(/्+/g,'');
   return s;
 }
 function lcsLen(a,b){
@@ -157,7 +156,7 @@ function isGoodMatch(userRaw, expectedRaw){
   const u = normalizeHindi(userRaw);
   const e = normalizeHindi(expectedRaw);
   if(!u || !e) return false;
-  if(e === 'सेब') return u === 'सेब'; // strict
+  if(e === 'सेब') return u === 'सेब';
   if(u === e) return true;
   const lcs = lcsLen(u,e);
   const sim = lcs / Math.max(u.length, e.length);
@@ -169,9 +168,9 @@ function matchAnswer(userRaw, expectedList){
   return false;
 }
 
-/* ===========================
-   UI & quiz flow
-   =========================== */
+/* ---------------------------
+  UI & quiz flow
+  --------------------------- */
 const questionDiv = document.getElementById('question');
 const answerInput = document.getElementById('answer');
 const startBtn = document.getElementById('startBtn');
@@ -186,32 +185,29 @@ const scoreDiv = document.getElementById('score');
 let pool = [], index = 0, score = 0;
 let recognition = null, listening = false;
 
-/* Prepare (called at start/reset) */
+/* prepare */
 function prepareQuiz(){
   pool = buildPool(); // randomized inside
-  index = 0;
-  score = 0;
+  index = 0; score = 0;
 }
 
-/* Show question (and speak it) */
+/* show and speak question */
 function showQuestion(){
   if(index >= pool.length){ finishQuiz(); return; }
   const q = pool[index];
-  const prompt = (q.type === 'vachan')
-    ? `वचन बदलिए: ${q.word} का बहुवचन बताइए`
-    : `लिंग बदलिए: ${q.word} का ${q.ask} बताइए`;
+  const prompt = (q.type === 'vachan') ?
+    `वचन बदलिए: ${q.word} का बहुवचन बताइए` :
+    `लिंग बदलिए: ${q.word} का ${q.ask} बताइए`;
   questionDiv.textContent = prompt;
   answerInput.value = '';
   feedbackDiv.textContent = '';
-  // enable controls
   answerInput.disabled = false;
   passBtn.disabled = false;
   replayBtn.disabled = false;
-  // speak question
   speak(prompt);
 }
 
-/* Start */
+/* start */
 startBtn.onclick = ()=>{
   prepareQuiz();
   chosenVoice = pickFemaleHindiVoice();
@@ -226,7 +222,7 @@ startBtn.onclick = ()=>{
   speak("चलो, हम हिंदी प्रश्नोत्तरी शुरू करते हैं।", ()=> setTimeout(showQuestion, 700));
 };
 
-/* Reset */
+/* reset */
 resetBtn.onclick = ()=>{
   if(recognition && listening){ try{ recognition.stop(); }catch(e){} listening=false; micBtn.textContent='🎤 बोलें'; }
   prepareQuiz();
@@ -242,7 +238,7 @@ resetBtn.onclick = ()=>{
   questionDiv.textContent = 'क्विज़ रीसेट हुआ — "शुरू करें" दबाएँ';
 };
 
-/* Handle submission (typed or voice) */
+/* handle submission */
 function handleAnswerSubmission(userText){
   const q = pool[index];
   const expected = q.answers;
@@ -251,7 +247,7 @@ function handleAnswerSubmission(userText){
     feedbackDiv.textContent = '✅ बहुत बढ़िया, सही जवाब!';
     speak('बहुत बढ़िया, सही जवाब!', ()=>{
       score++; index++;
-      setTimeout(showQuestion, 4000); // 4s pause
+      setTimeout(showQuestion, 2000); // 2s delay as requested
     });
   } else {
     feedbackDiv.style.color = '#c00';
@@ -260,14 +256,14 @@ function handleAnswerSubmission(userText){
   }
 }
 
-/* Check typed */
+/* check typed */
 checkBtn.onclick = ()=>{
   const user = answerInput.value.trim();
   if(!user){ feedbackDiv.textContent = 'कृपया उत्तर बोलें या लिखें।'; return; }
   handleAnswerSubmission(user);
 };
 
-/* Pass */
+/* pass */
 passBtn.onclick = ()=>{
   speak('अगला प्रश्न सुनिए।', ()=>{
     feedbackDiv.style.color = '#555';
@@ -276,18 +272,17 @@ passBtn.onclick = ()=>{
   });
 };
 
-/* Replay */
+/* replay current question */
 replayBtn.onclick = ()=> { if(questionDiv.textContent) speak(questionDiv.textContent); };
 
-/* Finish: show and speak only score as "<score> में से <total>" */
+/* finish: show and speak only score as "<score> में से 30" */
 function finishQuiz(){
   questionDiv.textContent = 'क्विज़ समाप्त!';
   feedbackDiv.textContent = '';
   const total = pool.length;
   scoreDiv.textContent = `आपका स्कोर: ${score} / ${total}`;
-  // speak only score
+  // speak only the numeric score phrase
   speak(`${score} में से ${total}`);
-  // disable controls
   answerInput.disabled = true;
   micBtn.disabled = true;
   passBtn.disabled = true;
@@ -296,10 +291,10 @@ function finishQuiz(){
   startBtn.disabled = false;
 }
 
-/* ===========================
-   Speech recognition (voice input)
-   - 1s delay after result to stabilize short words
-   =========================== */
+/* ---------------------------
+  Speech recognition (voice input)
+  - 1s wait after result to stabilize short words
+  --------------------------- */
 try{
   const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(Rec){
@@ -309,7 +304,6 @@ try{
     recognition.maxAlternatives = 1;
 
     recognition.onresult = e => {
-      // wait briefly so very short words are finalized
       setTimeout(()=>{
         const said = e.results[0][0].transcript.trim();
         answerInput.value = said;
@@ -344,7 +338,7 @@ try{
 /* Enter to submit typed */
 answerInput.addEventListener('keydown', ev => { if(ev.key === 'Enter') checkBtn.click(); });
 
-/* initialize by resetting */
+/* initialize */
 resetBtn.click();
 
 </script>
