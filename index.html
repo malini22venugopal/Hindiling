@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="hi">
 <head>
@@ -16,6 +15,8 @@
   #feedback{margin-top:12px;font-weight:700;min-height:28px}
   #score{margin-top:12px;color:#0b6623;font-weight:700}
   .small{font-size:12px;color:#666;margin-top:10px}
+  /* warning styling - left aligned below start button area */
+  #voiceWarning{color:#c00;text-align:left;margin-top:8px;white-space:pre-line;display:none}
 </style>
 </head>
 <body>
@@ -36,6 +37,10 @@
     <button id="checkBtn">✅ जाँचें</button>
   </div>
 
+  <!-- Warning appears left-aligned below the start button area -->
+  <div id="voiceWarning">🔴 आपके ब्राउज़र में हिंदी आवाज़ काम नहीं कर रही है। कृपया Chrome या Edge में दोबारा खोलें।
+🔴 Hindi voice not working in your browser. Please open again in Chrome or Edge.</div>
+
   <div id="feedback"></div>
   <div id="score"></div>
   <div class="small">Chrome (desktop / HTTPS/localhost) पर सबसे अच्छा काम करता है — पहली बार माइक्रोफ़ोन अनुमति दें।</div>
@@ -43,7 +48,7 @@
 <script>
 /* ---------------------------
   FINAL QUESTION SETS (30)
-  15 vachan (clean) + 15 ling (one-direction per pair chosen randomly)
+  15 vachan + 15 ling (one direction per pair)
   --------------------------- */
 const vachanQuestions = [
   { word: "किताब", answers:["किताबें","किताबे"] },
@@ -74,7 +79,7 @@ const lingPairs = [
   ["सेठ","सेठानी"]
 ];
 
-/* Build ling questions (one direction per pair to avoid duplicates) */
+/* Build ling questions */
 function buildLingQuestions(){
   const out=[];
   lingPairs.forEach(([m,f])=>{
@@ -84,7 +89,7 @@ function buildLingQuestions(){
   return out;
 }
 
-/* Build the full pool and shuffle */
+/* Build pool and shuffle */
 function buildPool(){
   const pool = [];
   vachanQuestions.forEach(q => pool.push({ type:'vachan', word:q.word, answers:q.answers }));
@@ -96,7 +101,7 @@ function buildPool(){
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } }
 
 /* ---------------------------
-  Voice / speak helpers
+  Voice helpers and detection
   --------------------------- */
 let chosenVoice = null;
 function pickFemaleHindiVoice(){
@@ -121,11 +126,33 @@ function speak(text, onend){
   }catch(e){ console.warn(e); }
 }
 
+/* Check if hi-IN voice available */
+function hasHindiVoice(){
+  const voices = speechSynthesis.getVoices();
+  if(!voices || voices.length===0) return false;
+  for(const v of voices){
+    if((v.lang||'').toLowerCase().startsWith('hi')) return true;
+  }
+  return false;
+}
+
+/* Show warning (left-aligned) below controls; auto-hide after 10s */
+const voiceWarningEl = document.getElementById('voiceWarning');
+let warningTimeout = null;
+function showVoiceWarning(){
+  voiceWarningEl.style.display = 'block';
+  // ensure left alignment (it already is set text-align:left in CSS)
+  if(warningTimeout) clearTimeout(warningTimeout);
+  warningTimeout = setTimeout(()=> { voiceWarningEl.style.display = 'none'; warningTimeout = null; }, 10000);
+}
+
+/* Also handle voiceschanged event so detection works as soon as voices load */
+speechSynthesis.onvoiceschanged = ()=> {
+  // nothing auto — we detect on start press too
+};
+
 /* ---------------------------
   Matching helpers (tolerant Hindi)
-  - normalizeHindi: unify matras, remove punctuation/spaces
-  - lcsLen for ordered similarity
-  - special strict rule: when expectedNormalized === 'सेब' accept only exact 'सेब'
   --------------------------- */
 function normalizeHindi(s){
   if(!s) return '';
@@ -142,11 +169,11 @@ function normalizeHindi(s){
 }
 function lcsLen(a,b){
   const n=a.length, m=b.length;
-  if(n===0||m===0) return 0;
+  if(n===0 || m===0) return 0;
   const dp = Array.from({length:n+1}, ()=> Array(m+1).fill(0));
   for(let i=1;i<=n;i++){
     for(let j=1;j<=m;j++){
-      if(a[i-1]===b[j-1]) dp[i][j] = dp[i-1][j-1]+1;
+      if(a[i-1]===b[j-1]) dp[i][j] = dp[i-1][j-1] + 1;
       else dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]);
     }
   }
@@ -156,7 +183,7 @@ function isGoodMatch(userRaw, expectedRaw){
   const u = normalizeHindi(userRaw);
   const e = normalizeHindi(expectedRaw);
   if(!u || !e) return false;
-  if(e === 'सेब') return u === 'सेब';
+  if(e === 'सेब') return u === 'सेब'; // strict
   if(u === e) return true;
   const lcs = lcsLen(u,e);
   const sim = lcs / Math.max(u.length, e.length);
@@ -187,17 +214,17 @@ let recognition = null, listening = false;
 
 /* prepare */
 function prepareQuiz(){
-  pool = buildPool(); // randomized inside
+  pool = buildPool();
   index = 0; score = 0;
 }
 
-/* show and speak question */
+/* show question and speak */
 function showQuestion(){
   if(index >= pool.length){ finishQuiz(); return; }
   const q = pool[index];
-  const prompt = (q.type === 'vachan') ?
-    `वचन बदलिए: ${q.word} का बहुवचन बताइए` :
-    `लिंग बदलिए: ${q.word} का ${q.ask} बताइए`;
+  const prompt = (q.type === 'vachan')
+    ? `वचन बदलिए: ${q.word} का बहुवचन बताइए`
+    : `लिंग बदलिए: ${q.word} का ${q.ask} बताइए`;
   questionDiv.textContent = prompt;
   answerInput.value = '';
   feedbackDiv.textContent = '';
@@ -207,8 +234,12 @@ function showQuestion(){
   speak(prompt);
 }
 
-/* start */
+/* start click: also detect Hindi TTS; show warning if missing (and runs every start click) */
 startBtn.onclick = ()=>{
+  // detect Hindi voice availability; if missing show warning
+  if(!hasHindiVoice()){
+    showVoiceWarning();
+  }
   prepareQuiz();
   chosenVoice = pickFemaleHindiVoice();
   startBtn.disabled = true;
@@ -238,7 +269,7 @@ resetBtn.onclick = ()=>{
   questionDiv.textContent = 'क्विज़ रीसेट हुआ — "शुरू करें" दबाएँ';
 };
 
-/* handle submission */
+/* handle answer submission */
 function handleAnswerSubmission(userText){
   const q = pool[index];
   const expected = q.answers;
@@ -247,7 +278,7 @@ function handleAnswerSubmission(userText){
     feedbackDiv.textContent = '✅ बहुत बढ़िया, सही जवाब!';
     speak('बहुत बढ़िया, सही जवाब!', ()=>{
       score++; index++;
-      setTimeout(showQuestion, 2000); // 2s delay as requested
+      setTimeout(showQuestion, 2000); // 2s delay after correct as requested
     });
   } else {
     feedbackDiv.style.color = '#c00';
@@ -272,16 +303,15 @@ passBtn.onclick = ()=>{
   });
 };
 
-/* replay current question */
+/* replay */
 replayBtn.onclick = ()=> { if(questionDiv.textContent) speak(questionDiv.textContent); };
 
-/* finish: show and speak only score as "<score> में से 30" */
+/* finish: show and speak only score as "<score> में से <total>" */
 function finishQuiz(){
   questionDiv.textContent = 'क्विज़ समाप्त!';
   feedbackDiv.textContent = '';
   const total = pool.length;
   scoreDiv.textContent = `आपका स्कोर: ${score} / ${total}`;
-  // speak only the numeric score phrase
   speak(`${score} में से ${total}`);
   answerInput.disabled = true;
   micBtn.disabled = true;
@@ -293,7 +323,7 @@ function finishQuiz(){
 
 /* ---------------------------
   Speech recognition (voice input)
-  - 1s wait after result to stabilize short words
+  1s wait after result to stabilize short words
   --------------------------- */
 try{
   const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
