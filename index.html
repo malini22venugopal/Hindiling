@@ -3,374 +3,193 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>हिंदी ऑडियो क्विज़ — लिंग & वचन (Final)</title>
+<title>हिंदी ऑडियो क्विज़ — लिंग & वचन</title>
 <style>
-  body{font-family:'Noto Sans Devanagari',system-ui,Arial,sans-serif;background:#fff;margin:0;padding:20px;text-align:center;color:#111}
-  h1{color:#b71c1c;margin:6px 0 12px}
-  #question{font-size:1.35rem;margin:18px 0;min-height:56px}
-  input#answer{padding:10px;font-size:16px;width:88%;max-width:520px;border:1px solid #ccc;border-radius:6px;text-align:center}
-  .controls{margin:14px 0;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-  button{padding:10px 14px;border-radius:8px;border:none;background:#1565c0;color:#fff;font-size:15px;cursor:pointer}
-  button.secondary{background:#6c757d}
-  #feedback{margin-top:12px;font-weight:700;min-height:28px}
-  #score{margin-top:12px;color:#0b6623;font-weight:700}
-  .small{font-size:12px;color:#666;margin-top:10px}
-  /* warning styling - left aligned below start button area */
-  #voiceWarning{color:#c00;text-align:left;margin-top:8px;white-space:pre-line;display:none}
+  body{font-family:'Noto Sans Devanagari',sans-serif;background:#fffdf9;margin:0;padding:20px;text-align:center}
+  h1{color:#b71c1c}
+  #loginScreen,#quizScreen,#resultScreen{display:none}
+  input,select{padding:10px;font-size:1.1em;width:80%;max-width:300px;margin:8px;border:2px solid #ccc;border-radius:10px;text-align:center}
+  button{margin:6px;padding:10px 15px;border:none;border-radius:8px;background:#1565c0;color:#fff;font-size:1em}
+  button:hover{background:#0d47a1}
+  #questionText{font-size:1.5em;margin:25px 0}
+  #feedbackText{margin-top:10px;font-size:1.2em;font-weight:bold}
+  #score{font-size:1.3em;margin-top:20px;color:#00695c}
 </style>
 </head>
 <body>
-  <h1>हिंदी ऑडियो क्विज़ — लिंग & वचन</h1>
+<h1>हिंदी ऑडियो क्विज़ — लिंग & वचन</h1>
 
-  <div id="question">क्विज़ शुरू करने के लिए "शुरू करें" दबाएँ</div>
+<!-- Login Screen -->
+<div id="loginScreen">
+  <h2>लॉगिन करें</h2>
+  <input id="studentName" placeholder="नाम लिखें"><br>
+  <input id="studentClass" placeholder="कक्षा / रोल नंबर"><br>
+  <button id="loginBtn">शुरू करें</button>
+  <p id="loginMsg" style="color:red"></p>
+</div>
 
+<!-- Quiz Screen -->
+<div id="quizScreen">
+  <div id="questionText">क्विज़ शुरू करने के लिए नीचे क्लिक करें</div>
+  <input id="answerInput" placeholder="उत्तर लिखें या बोलें"/>
   <div>
-    <input id="answer" placeholder="उत्तर बोलिए या लिखिए (Enter से जाँचें)" disabled>
+    <button id="submitBtn">जाँचें</button>
+    <button id="speakBtn">🎙️ बोलें</button>
+    <button id="passBtn">पास</button>
+    <button id="replayBtn">🔁 दोहराएँ</button>
   </div>
-
-  <div class="controls">
-    <button id="startBtn">▶️ शुरू करें</button>
-    <button id="resetBtn" class="secondary">🔄 रीसेट</button>
-    <button id="micBtn" disabled>🎤 बोलें</button>
-    <button id="passBtn" class="secondary" disabled>⏭ पास</button>
-    <button id="replayBtn" class="secondary" disabled>🔁 फिर सुनें</button>
-    <button id="checkBtn">✅ जाँचें</button>
-  </div>
-
-  <!-- Warning appears left-aligned below the start button area -->
-  <div id="voiceWarning">🔴 आपके ब्राउज़र में हिंदी आवाज़ काम नहीं कर रही है। कृपया Chrome या Edge में दोबारा खोलें।
-🔴 Hindi voice not working in your browser. Please open again in Chrome or Edge.</div>
-
-  <div id="feedback"></div>
+  <div><button id="playBtn">▶️ शुरू करें</button></div>
+  <div id="feedbackText"></div>
+  <div id="status"></div>
   <div id="score"></div>
-  <div class="small">Chrome (desktop / HTTPS/localhost) पर सबसे अच्छा काम करता है — पहली बार माइक्रोफ़ोन अनुमति दें।</div>
+</div>
+
+<!-- Result Screen -->
+<div id="resultScreen">
+  <h2>क्विज़ समाप्त!</h2>
+  <div id="finalScore"></div>
+  <button id="sendReportBtn">📱 WhatsApp पर रिपोर्ट भेजें</button>
+</div>
 
 <script>
-/* ---------------------------
-  FINAL QUESTION SETS (30)
-  15 vachan + 15 ling (one direction per pair)
-  --------------------------- */
+/* ------------------- QUESTIONS ------------------- */
 const vachanQuestions = [
-  { word: "किताब", answers:["किताबें","किताबे"] },
-  { word: "लड़का", answers:["लड़के","लड़कें"] },
-  { word: "लड़की", answers:["लड़कियाँ","लड़कियां","लड़कियॉं"] },
-  { word: "राजा", answers:["राजे","राजाओं","राजे"] },
-  { word: "बालक", answers:["बालक"] },
-  { word: "फूल", answers:["फूल"] },
-  { word: "बच्चा", answers:["बच्चे"] },
-  { word: "पुस्तक", answers:["पुस्तकें","पुस्तकों"] },
-  { word: "पक्षी", answers:["पक्षी"] },
-  { word: "पेड़", answers:["पेड़"] },
-  { word: "सैनिक", answers:["सैनिक"] },
+  { word: "किताब", answers:["किताबें"] },
+  { word: "नदी", answers:["नदियाँ","नदियां"] },
+  { word: "कुर्सी", answers:["कुर्सियाँ","कुर्सियां"] },
   { word: "फल", answers:["फल"] },
-  { word: "कमल", answers:["कमल"] },
-  { word: "खिलाड़ी", answers:["खिलाड़ी"] },
-  { word: "आम", answers:["आम"] }
+  { word: "फूल", answers:["फूल"] }
+];
+const lingQuestions = [
+  { word: "राजा", male:["राजा"], female:["रानी"] },
+  { word: "रानी", male:["राजा"], female:["रानी"] },
+  { word: "लड़का", male:["लड़का"], female:["लड़की"] },
+  { word: "लड़की", male:["लड़का"], female:["लड़की"] },
+  { word: "पति", male:["पति"], female:["पत्नी"] },
+  { word: "पत्नी", male:["पति"], female:["पत्नी"] },
+  { word: "शेर", male:["शेर"], female:["शेरनी"] },
+  { word: "शेरनी", male:["शेर"], female:["शेरनी"] },
+  { word: "पुत्र", male:["पुत्र"], female:["पुत्री"] },
+  { word: "पुत्री", male:["पुत्र"], female:["पुत्री"] }
 ];
 
-const lingPairs = [
-  ["राजा","रानी"],
-  ["शेर","शेरनी"],
-  ["पति","पत्नी"],
-  ["नाना","नानी"],
-  ["मुर्गा","मुर्गी"],
-  ["पुत्र","पुत्री"],
-  ["अध्यापक","अध्यापिका"],
-  ["सेठ","सेठानी"]
-];
+/* ------------------- SETUP ------------------- */
+let questions = [];
+vachanQuestions.forEach(q => questions.push({type:'vachan',...q}));
+lingQuestions.forEach(q => questions.push({type:'ling',...q}));
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
+shuffle(questions);
 
-/* Build ling questions */
-function buildLingQuestions(){
-  const out=[];
-  lingPairs.forEach(([m,f])=>{
-    if(Math.random() < 0.5) out.push({ type:'ling', word:m, ask:'स्त्रीलिंग', answers:[f] });
-    else out.push({ type:'ling', word:f, ask:'पुल्लिंग', answers:[m] });
-  });
-  return out;
-}
+let current=0,score=0,lastSpoken="",recognition=null,voice=null;
 
-/* Build pool and shuffle */
-function buildPool(){
-  const pool = [];
-  vachanQuestions.forEach(q => pool.push({ type:'vachan', word:q.word, answers:q.answers }));
-  const l = buildLingQuestions();
-  l.forEach(q => pool.push(q));
-  shuffle(pool);
-  return pool;
+/* ------------------- SPEECH ------------------- */
+function chooseVoice(){
+  const v=speechSynthesis.getVoices();
+  const hi=v.filter(x=>/hi|hindi/i.test(x.lang||""));
+  return hi.find(x=>/female|Aditi|Google/.test(x.name))||hi[0]||v[0];
 }
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } }
+function speak(txt){
+  lastSpoken=txt;
+  const u=new SpeechSynthesisUtterance(txt);
+  u.lang="hi-IN";u.rate=0.95;if(voice)u.voice=voice;
+  speechSynthesis.cancel();speechSynthesis.speak(u);
+}
+function normalize(s){return (s||"").normalize("NFD").replace(/[\u093C-\u094D\u0964-\u0965\s\p{P}]/gu,"").toLowerCase();}
+function lev(a,b){if(a===b)return 0;let m=[],al=a.length,bl=b.length;
+  for(let i=0;i<=al;i++){m[i]=[i];for(let j=1;j<=bl;j++)m[i][j]=i===0?j:0;}
+  for(let i=1;i<=al;i++){for(let j=1;j<=bl;j++){m[i][j]=a[i-1]===b[j-1]?m[i-1][j-1]:Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+1);}}return m[al][bl];}
+function match(a,b){a=normalize(a);b=normalize(b);if(a===b)return true;return lev(a,b)<=Math.max(1,Math.floor(Math.max(a.length,b.length)*0.25));}
 
-/* ---------------------------
-  Voice helpers and detection
-  --------------------------- */
-let chosenVoice = null;
-function pickFemaleHindiVoice(){
-  const voices = speechSynthesis.getVoices();
-  if(!voices || voices.length===0) return null;
-  const hi = voices.filter(v => (v.lang||'').toLowerCase().startsWith('hi'));
-  const hints = ['female','aditi','shruti','google','samantha','ananya','aarya'];
-  let pick = hi.find(v => hints.some(h => (v.name||'').toLowerCase().includes(h)));
-  if(!pick) pick = hi[0] || voices[0];
-  return pick;
-}
-function speak(text, onend){
-  try{
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'hi-IN';
-    u.rate = 0.95;
-    if(!chosenVoice) chosenVoice = pickFemaleHindiVoice();
-    if(chosenVoice) u.voice = chosenVoice;
-    if(onend) u.onend = onend;
-    speechSynthesis.speak(u);
-  }catch(e){ console.warn(e); }
-}
+/* ------------------- ELEMENTS ------------------- */
+const qText=document.getElementById("questionText");
+const ans=document.getElementById("answerInput");
+const submitBtn=document.getElementById("submitBtn");
+const passBtn=document.getElementById("passBtn");
+const replayBtn=document.getElementById("replayBtn");
+const speakBtn=document.getElementById("speakBtn");
+const playBtn=document.getElementById("playBtn");
+const scoreDiv=document.getElementById("score");
+const feedback=document.getElementById("feedbackText");
+const status=document.getElementById("status");
 
-/* Check if hi-IN voice available */
-function hasHindiVoice(){
-  const voices = speechSynthesis.getVoices();
-  if(!voices || voices.length===0) return false;
-  for(const v of voices){
-    if((v.lang||'').toLowerCase().startsWith('hi')) return true;
-  }
-  return false;
-}
-
-/* Show warning (left-aligned) below controls; auto-hide after 10s */
-const voiceWarningEl = document.getElementById('voiceWarning');
-let warningTimeout = null;
-function showVoiceWarning(){
-  voiceWarningEl.style.display = 'block';
-  // ensure left alignment (it already is set text-align:left in CSS)
-  if(warningTimeout) clearTimeout(warningTimeout);
-  warningTimeout = setTimeout(()=> { voiceWarningEl.style.display = 'none'; warningTimeout = null; }, 10000);
-}
-
-/* Also handle voiceschanged event so detection works as soon as voices load */
-speechSynthesis.onvoiceschanged = ()=> {
-  // nothing auto — we detect on start press too
-};
-
-/* ---------------------------
-  Matching helpers (tolerant Hindi)
-  --------------------------- */
-function normalizeHindi(s){
-  if(!s) return '';
-  s = s.toString().normalize('NFD');
-  s = s.replace(/[ँं]/g,'ं');
-  s = s.replace(/[ॉोौ]/g,'ो');
-  s = s.replace(/[ैे]/g,'े');
-  s = s.replace(/[ृ]/g,'र');
-  s = s.replace(/[ीि]/g,'ि');
-  s = s.replace(/[ूु]/g,'ु');
-  s = s.replace(/[^\u0900-\u097F]/g,'');
-  s = s.replace(/्+/g,'');
-  return s;
-}
-function lcsLen(a,b){
-  const n=a.length, m=b.length;
-  if(n===0 || m===0) return 0;
-  const dp = Array.from({length:n+1}, ()=> Array(m+1).fill(0));
-  for(let i=1;i<=n;i++){
-    for(let j=1;j<=m;j++){
-      if(a[i-1]===b[j-1]) dp[i][j] = dp[i-1][j-1] + 1;
-      else dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]);
+/* ------------------- QUIZ LOGIC ------------------- */
+function nextQ(){
+  if(current>=questions.length)return endQuiz();
+  const q=questions[current];
+  let prompt,expected;
+  if(q.type==="vachan"){prompt=`वचन बदलिए: ${q.word} का बहुवचन बताइए`;expected=q.answers;}
+  else {
+    if(["रानी","लड़की","पत्नी","शेरनी","पुत्री"].includes(q.word)){
+      prompt=`लिंग बदलिए: ${q.word} का पुल्लिंग बताइए`;expected=q.male;
+    } else {
+      prompt=`लिंग बदलिए: ${q.word} का स्त्रीलिंग बताइए`;expected=q.female;
     }
   }
-  return dp[n][m];
-}
-function isGoodMatch(userRaw, expectedRaw){
-  const u = normalizeHindi(userRaw);
-  const e = normalizeHindi(expectedRaw);
-  if(!u || !e) return false;
-  if(e === 'सेब') return u === 'सेब'; // strict
-  if(u === e) return true;
-  const lcs = lcsLen(u,e);
-  const sim = lcs / Math.max(u.length, e.length);
-  if(sim >= 0.7 && u.length >= Math.max(1, e.length - 1)) return true;
-  return false;
-}
-function matchAnswer(userRaw, expectedList){
-  for(const ex of expectedList) if(isGoodMatch(userRaw, ex)) return true;
-  return false;
-}
-
-/* ---------------------------
-  UI & quiz flow
-  --------------------------- */
-const questionDiv = document.getElementById('question');
-const answerInput = document.getElementById('answer');
-const startBtn = document.getElementById('startBtn');
-const resetBtn = document.getElementById('resetBtn');
-const micBtn = document.getElementById('micBtn');
-const passBtn = document.getElementById('passBtn');
-const replayBtn = document.getElementById('replayBtn');
-const checkBtn = document.getElementById('checkBtn');
-const feedbackDiv = document.getElementById('feedback');
-const scoreDiv = document.getElementById('score');
-
-let pool = [], index = 0, score = 0;
-let recognition = null, listening = false;
-
-/* prepare */
-function prepareQuiz(){
-  pool = buildPool();
-  index = 0; score = 0;
-}
-
-/* show question and speak */
-function showQuestion(){
-  if(index >= pool.length){ finishQuiz(); return; }
-  const q = pool[index];
-  const prompt = (q.type === 'vachan')
-    ? `वचन बदलिए: ${q.word} का बहुवचन बताइए`
-    : `लिंग बदलिए: ${q.word} का ${q.ask} बताइए`;
-  questionDiv.textContent = prompt;
-  answerInput.value = '';
-  feedbackDiv.textContent = '';
-  answerInput.disabled = false;
-  passBtn.disabled = false;
-  replayBtn.disabled = false;
+  q._expected=expected;
+  qText.textContent=prompt;ans.value="";feedback.textContent="";
+  ans.disabled=false;submitBtn.disabled=false;passBtn.disabled=false;replayBtn.disabled=false;
   speak(prompt);
 }
+function correct(){score++;feedback.textContent="✅ सही उत्तर!";feedback.style.color="#1a7f3a";speak("सही उत्तर");setTimeout(()=>{current++;nextQ();},2500);}
+function wrong(){feedback.textContent="❌ गलत उत्तर! फिर से बोलें या पास दबाएँ।";feedback.style.color="#c00";speak("गलत उत्तर");}
+submitBtn.onclick=()=>{const val=ans.value.trim();if(!val)return;const list=questions[current]._expected;
+  if(list.some(x=>match(val,x)))correct();else wrong();};
+passBtn.onclick=()=>{current++;nextQ();};
+replayBtn.onclick=()=>{if(lastSpoken)speak(lastSpoken);};
+playBtn.onclick=()=>{current=0;score=0;shuffle(questions);nextQ();};
 
-/* start click: also detect Hindi TTS; show warning if missing (and runs every start click) */
-startBtn.onclick = ()=>{
-  // detect Hindi voice availability; if missing show warning
-  if(!hasHindiVoice()){
-    showVoiceWarning();
-  }
-  prepareQuiz();
-  chosenVoice = pickFemaleHindiVoice();
-  startBtn.disabled = true;
-  resetBtn.disabled = false;
-  answerInput.disabled = false;
-  micBtn.disabled = false;
-  passBtn.disabled = false;
-  replayBtn.disabled = false;
-  checkBtn.disabled = false;
-  scoreDiv.textContent = '';
-  speak("चलो, हम हिंदी प्रश्नोत्तरी शुरू करते हैं।", ()=> setTimeout(showQuestion, 700));
-};
-
-/* reset */
-resetBtn.onclick = ()=>{
-  if(recognition && listening){ try{ recognition.stop(); }catch(e){} listening=false; micBtn.textContent='🎤 बोलें'; }
-  prepareQuiz();
-  answerInput.value = '';
-  feedbackDiv.textContent = '';
-  scoreDiv.textContent = '';
-  startBtn.disabled = false;
-  answerInput.disabled = true;
-  micBtn.disabled = true;
-  passBtn.disabled = true;
-  replayBtn.disabled = true;
-  checkBtn.disabled = false;
-  questionDiv.textContent = 'क्विज़ रीसेट हुआ — "शुरू करें" दबाएँ';
-};
-
-/* handle answer submission */
-function handleAnswerSubmission(userText){
-  const q = pool[index];
-  const expected = q.answers;
-  if(matchAnswer(userText, expected)){
-    feedbackDiv.style.color = '#1a7f3a';
-    feedbackDiv.textContent = '✅ बहुत बढ़िया, सही जवाब!';
-    speak('बहुत बढ़िया, सही जवाब!', ()=>{
-      score++; index++;
-      setTimeout(showQuestion, 2000); // 2s delay after correct as requested
-    });
-  } else {
-    feedbackDiv.style.color = '#c00';
-    feedbackDiv.textContent = '❌ फिर कोशिश करें!';
-    speak('फिर कोशिश करें!');
-  }
-}
-
-/* check typed */
-checkBtn.onclick = ()=>{
-  const user = answerInput.value.trim();
-  if(!user){ feedbackDiv.textContent = 'कृपया उत्तर बोलें या लिखें।'; return; }
-  handleAnswerSubmission(user);
-};
-
-/* pass */
-passBtn.onclick = ()=>{
-  speak('अगला प्रश्न सुनिए।', ()=>{
-    feedbackDiv.style.color = '#555';
-    feedbackDiv.textContent = '⏭ प्रश्न पास किया गया।';
-    index++; setTimeout(showQuestion, 700);
-  });
-};
-
-/* replay */
-replayBtn.onclick = ()=> { if(questionDiv.textContent) speak(questionDiv.textContent); };
-
-/* finish: show and speak only score as "<score> में से <total>" */
-function finishQuiz(){
-  questionDiv.textContent = 'क्विज़ समाप्त!';
-  feedbackDiv.textContent = '';
-  const total = pool.length;
-  scoreDiv.textContent = `आपका स्कोर: ${score} / ${total}`;
-  speak(`${score} में से ${total}`);
-  answerInput.disabled = true;
-  micBtn.disabled = true;
-  passBtn.disabled = true;
-  replayBtn.disabled = true;
-  checkBtn.disabled = true;
-  startBtn.disabled = false;
-}
-
-/* ---------------------------
-  Speech recognition (voice input)
-  1s wait after result to stabilize short words
-  --------------------------- */
+/* ------------------- SPEECH RECOGNITION ------------------- */
 try{
-  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(Rec){
-    recognition = new Rec();
-    recognition.lang = 'hi-IN';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onresult = e => {
-      setTimeout(()=>{
-        const said = e.results[0][0].transcript.trim();
-        answerInput.value = said;
-        handleAnswerSubmission(said);
-      }, 1000);
-    };
-
-    recognition.onerror = ev => {
-      feedbackDiv.textContent = '🎙️ त्रुटि: ' + (ev.error || 'error');
-      listening = false; micBtn.textContent = '🎤 बोलें';
-    };
-
-    recognition.onend = ()=> {
-      listening = false; micBtn.textContent = '🎤 बोलें';
-    };
-
-    micBtn.onclick = ()=>{
-      if(!pool.length){ feedbackDiv.textContent = 'पहले "शुरू करें" दबाएँ।'; return; }
-      if(listening){ try{ recognition.stop(); }catch(e){} listening=false; micBtn.textContent='🎤 बोलें'; }
-      else { recognition.start(); listening=true; micBtn.textContent='⏹ रोकें'; feedbackDiv.textContent=''; }
-    };
-  } else {
-    micBtn.disabled = true;
-    micBtn.textContent = 'माइक नहीं';
+  const R=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(R){
+    recognition=new R();recognition.lang="hi-IN";recognition.interimResults=false;recognition.maxAlternatives=1;
+    recognition.onresult=e=>{const txt=e.results[0][0].transcript.trim();ans.value=txt;
+      const list=questions[current]._expected;if(list.some(x=>match(txt,x)))correct();else wrong();};
+    recognition.onerror=e=>{status.textContent="🎙️ त्रुटि: "+e.error;};
+    speakBtn.onclick=()=>{status.textContent="🎙️ सुन रहा हूँ";try{recognition.start();}catch{};};
   }
-}catch(e){
-  console.warn(e);
-  micBtn.disabled = true;
-  micBtn.textContent = 'माइक त्रुटि';
+}catch(e){console.warn(e);}
+
+/* ------------------- END QUIZ ------------------- */
+function endQuiz(){
+  document.getElementById("quizScreen").style.display="none";
+  const r=document.getElementById("resultScreen");
+  r.style.display="block";
+  document.getElementById("finalScore").textContent=`आपका स्कोर: ${score} / ${questions.length}`;
+
+  // Save to localStorage
+  const data={name:localStorage.name,class:localStorage.className,score,total:questions.length,date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString()};
+  localStorage[`result_${localStorage.name}`]=JSON.stringify(data);
+
+  // Send to Google Sheet
+  fetch("YOUR_SCRIPT_URL",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(data)
+  });
 }
 
-/* Enter to submit typed */
-answerInput.addEventListener('keydown', ev => { if(ev.key === 'Enter') checkBtn.click(); });
+/* ------------------- LOGIN ------------------- */
+document.getElementById("loginBtn").onclick=()=>{
+  const n=document.getElementById("studentName").value.trim();
+  const c=document.getElementById("studentClass").value.trim();
+  if(!n||!c)return alert("कृपया नाम और कक्षा भरें!");
+  if(localStorage[`result_${n}`]){document.getElementById("loginMsg").textContent="आपने पहले ही क्विज़ दे दिया है।";return;}
+  localStorage.name=n;localStorage.className=c;
+  document.getElementById("loginScreen").style.display="none";
+  document.getElementById("quizScreen").style.display="block";
+  voice=chooseVoice();speak("क्विज़ शुरू करें");
+}
 
-/* initialize */
-resetBtn.click();
+/* ------------------- WHATSAPP ------------------- */
+document.getElementById("sendReportBtn").onclick=()=>{
+  const phone="919994895676"; // e.g. 919876543210
+  const msg=`छात्र: ${localStorage.name}%0Aकक्षा: ${localStorage.className}%0Aस्कोर: ${score} / ${questions.length}%0Aतारीख़: ${new Date().toLocaleString()}`;
+  const url=`https://wa.me/${phone}?text=${msg}`;
+  window.open(url,"_blank");
+}
 
+window.onload=()=>{document.getElementById("loginScreen").style.display="block";}
 </script>
 </body>
 </html>
