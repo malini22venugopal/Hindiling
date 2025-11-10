@@ -60,6 +60,7 @@ const vachanQuestions = [
   { word: "फल", answers:["फल"] },
   { word: "फूल", answers:["फूल"] }
 ];
+
 const lingQuestions = [
   { word: "राजा", male:["राजा"], female:["रानी"] },
   { word: "रानी", male:["राजा"], female:["रानी"] },
@@ -156,21 +157,13 @@ function endQuiz(){
   const r=document.getElementById("resultScreen");
   r.style.display="block";
   document.getElementById("finalScore").textContent=`आपका स्कोर: ${score} / ${questions.length}`;
-
-  // Save to localStorage
-  const data={name:localStorage.name,class:localStorage.className,score,total:questions.length,date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString()};
+  const data={name:localStorage.name,class:localStorage.className,score,t:new Date().toLocaleString()};
   localStorage[`result_${localStorage.name}`]=JSON.stringify(data);
-
-  // Send to Google Sheet
-  fetch("YOUR_SCRIPT_URL",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(data)
-  });
 }
 
-/* ------------------- LOGIN ------------------- */
-document.getElementById("loginBtn").onclick=()=>{
+/* ------------------- LOGIN LOGIC ------------------- */
+const loginBtn=document.getElementById("loginBtn");
+loginBtn.onclick=()=>{
   const n=document.getElementById("studentName").value.trim();
   const c=document.getElementById("studentClass").value.trim();
   if(!n||!c)return alert("कृपया नाम और कक्षा भरें!");
@@ -181,15 +174,18 @@ document.getElementById("loginBtn").onclick=()=>{
   voice=chooseVoice();speak("क्विज़ शुरू करें");
 }
 
-/* ------------------- WHATSAPP ------------------- */
+/* ------------------- SEND REPORT ------------------- */
 document.getElementById("sendReportBtn").onclick=()=>{
-  const phone="919994895676"; // e.g. 919876543210
+  const phone="YOUR_PHONE_NUMBER"; // 👉 Replace with your number (e.g. 919876543210)
   const msg=`छात्र: ${localStorage.name}%0Aकक्षा: ${localStorage.className}%0Aस्कोर: ${score} / ${questions.length}%0Aतारीख़: ${new Date().toLocaleString()}`;
   const url=`https://wa.me/${phone}?text=${msg}`;
   window.open(url,"_blank");
 }
 
-window.onload=()=>{document.getElementById("loginScreen").style.display="block";}
+/* ------------------- START ------------------- */
+window.onload=()=>{
+  document.getElementById("loginScreen").style.display="block";
+}
 </script>
 </body>
 </html>
