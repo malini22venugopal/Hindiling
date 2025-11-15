@@ -272,8 +272,22 @@ logoutBtn.onclick=async()=>{
 };
 
 /* ---------------- Login ---------------- */
-loginBtn.onclick=()=>{
-  const name=loginName.value.trim();
-  if(!name){ loginMsg.textContent="कृपया नाम दर्ज करें"; return; }
-  if(localStorage.getItem('quiz_done_for_'+name)){ loginMsg.textContent="आपने पहले ही इस क्विज
+loginBtn.onclick = ()=>{
+  const name = loginName.value.trim();
+  if(!name){ loginMsg.textContent = "कृपया नाम दर्ज करें"; return; }
+  if(localStorage.getItem('quiz_done_for_'+name)){ loginMsg.textContent = "आपने पहले ही इस क्विज़ को पूरा कर लिया है।"; return; }
+  localStorage.setItem('quiz_user_name', name);
+  loginModal.style.display = 'none';
+  quizArea.style.display = 'block';
 
+  // Start quiz immediately after login
+  started = true;
+  idx = 0;
+  score = 0;
+  correctCount = 0;
+  wrongCount = 0;
+  startTime = Date.now();
+  shuffle(pool);
+  showQuestion();
+  scoreEl.textContent = '';
+};
