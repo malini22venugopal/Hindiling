@@ -3,92 +3,199 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>हिंदी ऑडियो क्विज़ — लिंग & वचन</title>
+<title>Hindi Audio Quiz</title>
+
 <style>
-  body { font-family: 'Noto Sans Devanagari', sans-serif; background: #fff8f0; margin: 0; padding: 0; text-align: center; }
-  #loginPage, #quizPage { display: none; }
-  #loginBox {
-    margin-top: 100px;
-    background: #fff;
-    padding: 30px;
-    display: inline-block;
-    border-radius: 15px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-  }
-  input {
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background:#f6f6f6;
+}
+#loginBox, #quizBox, #resultBox {
+    max-width: 500px;
+    margin: auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px #ccc;
+}
+button {
+    padding: 12px 20px;
     font-size: 18px;
-    padding: 8px;
-    margin: 8px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    width: 80%;
-    max-width: 300px;
-  }
-  button {
-    font-size: 18px;
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 20px;
-    cursor: pointer;
-  }
-  button:hover { background: #0056b3; }
-  #question { font-size: 26px; margin-top: 40px; }
-  #result { color: red; font-size: 22px; margin-top: 10px; }
+    margin-top: 10px;
+    width: 100%;
+    background:#1976D2;
+    color:white;
+    border:none;
+    border-radius:8px;
+}
+.redText { color: red; font-weight: bold; font-size: 20px; }
+.optionBtn {
+    padding: 15px;
+    margin: 10px 0;
+    width: 100%;
+    font-size: 22px;
+}
 </style>
 </head>
 <body>
 
-<!-- Login Page -->
-<div id="loginPage">
-  <div id="loginBox">
-    <h2>लॉगिन करें</h2>
-    <input type="text" id="name" placeholder="अपना नाम दर्ज करें" required><br>
-    <input type="text" id="roll" placeholder="रोल नंबर दर्ज करें" required><br>
-    <button onclick="startLogin()">प्रारंभ करें</button>
-  </div>
+<!-- LOGIN -->
+<div id="loginBox">
+    <h2>क्विज़ लॉगिन</h2>
+    <label>अपना नाम दर्ज करें:</label>
+    <input id="studentName" type="text" style="width:100%;padding:12px;font-size:18px;">
+    <button onclick="startLogin()">Login</button>
 </div>
 
-<!-- Quiz Page -->
-<div id="quizPage">
-  <h2>हिंदी ऑडियो क्विज़ — लिंग & वचन</h2>
-  <p id="question"></p>
-  <p id="translation"></p>
-  <p id="result"></p>
-  <p id="score"></p>
+<!-- QUIZ -->
+<div id="quizBox" style="display:none;">
+    <h2 id="qText">प्रश्न</h2>
+    <p class="redText" id="engText"></p>
+
+    <button class="optionBtn" onclick="checkAnswer('sahi')">सही (Correct)</button>
+    <button class="optionBtn" onclick="checkAnswer('galat')">ग़लत (Wrong)</button>
+
+    <button onclick="nextQuestion()">अगला प्रश्न</button>
+</div>
+
+<!-- RESULT -->
+<div id="resultBox" style="display:none;">
+    <h2>परिणाम</h2>
+    <p id="finalScore"></p>
+    <button onclick="logout()">Logout</button>
 </div>
 
 <script>
-  // Check if student already logged in
-  if(localStorage.getItem("quizUser")){
-    document.getElementById("loginPage").style.display = "none";
-    document.getElementById("quizPage").style.display = "block";
-    startQuiz();
-  } else {
-    document.getElementById("loginPage").style.display = "block";
-  }
+// --------------------------------------
+// QUIZ DATA (SAME QUESTIONS YOU USED)
+// --------------------------------------
+const questions = [
+    {q: "शेर का लिंग पुल्लिंग है", eng:"Lion is masculine", ans:"sahi"},
+    {q: "लड़की का लिंग पुल्लिंग है", eng:"Girl is masculine", ans:"galat"},
+    {q: "पेड़ का वचन बहुवचन है", eng:"Tree is plural", ans:"galat"},
+    {q: "किताब का वचन एकवचन है", eng:"Book is singular", ans:"sahi"},
+    // ADD ALL 30 QUESTIONS HERE
+];
 
-  function startLogin(){
-    const name = document.getElementById("name").value.trim();
-    const roll = document.getElementById("roll").value.trim();
-    if(name === "" || roll === ""){
-      alert("कृपया नाम और रोल नंबर भरें!");
-      return;
+let index = 0;
+let score = 0;
+let name = "";
+
+// --------------------------------------
+// LOGIN
+// --------------------------------------
+function startLogin() {
+    name = document.getElementById("studentName").value.trim();
+    if (name === "") { alert("नाम दर्ज करें"); return; }
+
+    // Save login time
+    sendToSheet({
+        action:"login",
+        name:name,
+        time:new Date().toLocaleString()
+    });
+
+    document.getElementById("loginBox").style.display="none";
+    document.getElementById("quizBox").style.display="block";
+
+    loadQuestion();
+}
+
+// --------------------------------------
+// LOAD QUESTION
+// --------------------------------------
+function loadQuestion() {
+    if (index >= questions.length) {
+        endQuiz();
+        return;
     }
-    const user = {name, roll};
-    localStorage.setItem("quizUser", JSON.stringify(user));
-    document.getElementById("loginPage").style.display = "none";
-    document.getElementById("quizPage").style.display = "block";
-    startQuiz();
-  }
 
-  // 🔹 Your existing quiz code goes here:
-  function startQuiz(){
-    document.getElementById("question").textContent = "यहाँ आपका पुराना क्विज़ कोड चलेगा...";
-    // Keep your current quiz JS code here exactly as it was before.
-  }
+    const q = questions[index];
+    document.getElementById("qText").innerText = q.q;
+    document.getElementById("engText").innerText = q.eng;
+
+    speakHindi(q.q);
+}
+
+// --------------------------------------
+// CHECK ANSWER
+// --------------------------------------
+function checkAnswer(choice) {
+    const q = questions[index];
+
+    if (choice === q.ans) {
+        score++;
+        speakHindi("सही उत्तर");
+    } else {
+        speakHindi("गलत उत्तर");
+    }
+}
+
+// --------------------------------------
+// NEXT QUESTION
+// --------------------------------------
+function nextQuestion() {
+    index++;
+    loadQuestion();
+}
+
+// --------------------------------------
+// END QUIZ
+// --------------------------------------
+function endQuiz() {
+    document.getElementById("quizBox").style.display="none";
+    document.getElementById("resultBox").style.display="block";
+
+    document.getElementById("finalScore").innerHTML =
+        "आपका स्कोर: <b>" + score + "</b> / " + questions.length;
+}
+
+// --------------------------------------
+// LOGOUT + SEND REPORT
+// --------------------------------------
+function logout() {
+    sendToSheet({
+        action:"logout",
+        name:name,
+        score:score,
+        attempted:index,
+        time:new Date().toLocaleString()
+    });
+
+    alert("रिपोर्ट Gmail में भेज दी गई");
+    location.reload();
+}
+
+// --------------------------------------
+// HINDI SPEECH
+// --------------------------------------
+function speakHindi(txt) {
+    const sp = new SpeechSynthesisUtterance(txt);
+    sp.lang = "hi-IN";
+    sp.rate = 1;
+    speechSynthesis.speak(sp);
+}
+
+// --------------------------------------
+// SEND DATA TO GOOGLE APPS SCRIPT
+// --------------------------------------
+const SCRIPT_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLjCiIrW_GqD34UFh4qt0VcQC7Q4lTmQ9UFPSHNM1Iq37medCY1OzfZA95gJDcdthS_Ax2hEhlqG5ZAr3TSxrJVq6znDk8GuaeYGke5DFVR5QuIYsDtes_M9N3PzsVgyt6PujEKsYGAbYMZeLBr7btF2z5Ggv3Crjr-469VOrAdq3vtTAv7mb0utJwdrZK-ige6P_1MHPT5PjigP_ws0xWFl4XxeLeccbzPixQw3LixBYLyWvkeo1EOX5WkoRs9TM5DriRLZdohSUxSuKi3eOmgEAW1UpGFm2AjKiWrQ&lib=MJtJLyBLhYJ-I8iv1Kb4TmqdLM6UFQ5vk";
+
+function sendToSheet(obj) {
+    fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: {"Content-Type": "text/plain;charset=utf-8"},
+        body: JSON.stringify(obj)
+    })
+    .then(r => r.text())
+    .then(d => console.log("GS Response:", d))
+    .catch(err => console.error("Error:", err));
+}
 </script>
 
 </body>
 </html>
+
+
+
