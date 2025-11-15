@@ -1,201 +1,220 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hindi Audio Quiz</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>हिन्दी लिंग-वचन क्विज़</title>
 
 <style>
 body {
     font-family: Arial, sans-serif;
-    margin: 20px;
-    background:#f6f6f6;
+    background: #fff;
+    padding: 20px;
 }
 #loginBox, #quizBox, #resultBox {
     max-width: 500px;
     margin: auto;
-    padding: 20px;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 0 10px #ccc;
+    display: none;
 }
 button {
     padding: 12px 20px;
     font-size: 18px;
     margin-top: 10px;
-    width: 100%;
-    background:#1976D2;
-    color:white;
-    border:none;
-    border-radius:8px;
 }
-.redText { color: red; font-weight: bold; font-size: 20px; }
-.optionBtn {
-    padding: 15px;
-    margin: 10px 0;
-    width: 100%;
-    font-size: 22px;
+#timer {
+    color: red;
+    font-size: 20px;
+    font-weight: bold;
 }
 </style>
 </head>
+
 <body>
+
+<h2 style="text-align:center;">हिन्दी लिंग + वचन क्विज़</h2>
 
 <!-- LOGIN -->
 <div id="loginBox">
-    <h2>क्विज़ लॉगिन</h2>
-    <label>अपना नाम दर्ज करें:</label>
-    <input id="studentName" type="text" style="width:100%;padding:12px;font-size:18px;">
-    <button onclick="startLogin()">Login</button>
+    <h3>कृपया अपना नाम लिखें</h3>
+    <input id="studentName" type="text" placeholder="नाम लिखें" style="font-size:20px;padding:10px;width:100%;" />
+    <button onclick="startLogin()">लॉगिन</button>
 </div>
 
 <!-- QUIZ -->
-<div id="quizBox" style="display:none;">
-    <h2 id="qText">प्रश्न</h2>
-    <p class="redText" id="engText"></p>
+<div id="quizBox">
+    <button onclick="startQuiz()">शुरू करें</button>
+    <p id="question" style="font-size:26px;margin-top:20px;"></p>
+    <p id="english"></p>
+    <input id="answer" type="text" placeholder="उत्तर बोलें / लिखें" style="font-size:22px;padding:10px;width:100%;" />
+    <button onclick="checkAnswer()">जांच</button>
 
-    <button class="optionBtn" onclick="checkAnswer('sahi')">सही (Correct)</button>
-    <button class="optionBtn" onclick="checkAnswer('galat')">ग़लत (Wrong)</button>
-
-    <button onclick="nextQuestion()">अगला प्रश्न</button>
+    <p id="timer"></p>
 </div>
 
 <!-- RESULT -->
-<div id="resultBox" style="display:none;">
-    <h2>परिणाम</h2>
-    <p id="finalScore"></p>
-    <button onclick="logout()">Logout</button>
+<div id="resultBox">
+    <h2>क्विज़ समाप्त</h2>
+    <p id="scoreText"></p>
+    <button onclick="logoutAndSend()">लॉगआउट</button>
 </div>
 
 <script>
-// --------------------------------------
-// QUIZ DATA (SAME QUESTIONS YOU USED)
-// --------------------------------------
+// ---------------- DATA ------------------
+
 const questions = [
-    {q: "शेर का लिंग पुल्लिंग है", eng:"Lion is masculine", ans:"sahi"},
-    {q: "लड़की का लिंग पुल्लिंग है", eng:"Girl is masculine", ans:"galat"},
-    {q: "पेड़ का वचन बहुवचन है", eng:"Tree is plural", ans:"galat"},
-    {q: "किताब का वचन एकवचन है", eng:"Book is singular", ans:"sahi"},
-    // ADD ALL 30 QUESTIONS HERE
+    { q:"लड़का", eng:"boy", type:"ling", ans:["पुल्लिंग"] },
+    { q:"राजा", eng:"king", type:"ling", ans:["पुल्लिंग"] },
+
+    { q:"लड़कियाँ", eng:"girls", type:"ling", ans:["स्त्रीलिंग"] },
+    { q:"औरत", eng:"woman", type:"ling", ans:["स्त्रीलिंग"] },
+
+    { q:"सेब", eng:"apple", type:"vachan", ans:["सेब"] },
+    { q:"तस्वीर", eng:"picture", type:"vachan", ans:["तस्वीर"] },
+    { q:"फल", eng:"fruit", type:"vachan", ans:["फल"] },
+    { q:"आम", eng:"mango", type:"vachan", ans:["आम"] },
+    { q:"फूल", eng:"flower", type:"vachan", ans:["फूल"] }
 ];
 
+let shuffled = [];
 let index = 0;
 let score = 0;
-let name = "";
+let studentName = "";
+let timeLeft = 10;
+let timerInterval = null;
 
-// --------------------------------------
-// LOGIN
-// --------------------------------------
+// Google Script URL
+const SCRIPT_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLjCiIrW_GqD34UFh4qt0VcQC7Q4lTmQ9UFPSHNM1Iq37medCY1OzfZA95gJDcdthS_Ax2hEhlqG5ZAr3TSxrJVq6znDk8GuaeYGke5DFVR5QuIYsDtes_M9N3PzsVgyt6PujEKsYGAbYMZeLBr7btF2z5Ggv3Crjr-469VOrAdq3vtTAv7mb0utJwdrZK-ige6P_1MHPT5PjigP_ws0xWFl4XxeLeccbzPixQw3LixBYLyWvkeo1EOX5WkoRs9TM5DriRLZdohSUxSuKi3eOmgEAW1UpGFm2AjKiWrQ&lib=MJtJLyBLhYJ-I8iv1Kb4TmqdLM6UFQ5vk";
+
+// ---------------- LOGIN ------------------
+
 function startLogin() {
-    name = document.getElementById("studentName").value.trim();
-    if (name === "") { alert("नाम दर्ज करें"); return; }
+    studentName = document.getElementById("studentName").value.trim();
+    if(studentName === "") { alert("नाम लिखें"); return; }
 
-    // Save login time
-    sendToSheet({
-        action:"login",
-        name:name,
-        time:new Date().toLocaleString()
-    });
+    localStorage.setItem("loggedName", studentName);
 
-    document.getElementById("loginBox").style.display="none";
-    document.getElementById("quizBox").style.display="block";
-
-    loadQuestion();
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("quizBox").style.display = "block";
 }
 
-// --------------------------------------
-// LOAD QUESTION
-// --------------------------------------
-function loadQuestion() {
-    if (index >= questions.length) {
+// ---------------- QUIZ ------------------
+
+function startQuiz() {
+    shuffled = questions.sort(() => Math.random() - 0.5);
+    index = 0;
+    score = 0;
+
+    showQuestion();
+}
+
+function showQuestion() {
+    if(index >= shuffled.length) {
         endQuiz();
         return;
     }
 
-    const q = questions[index];
-    document.getElementById("qText").innerText = q.q;
-    document.getElementById("engText").innerText = q.eng;
+    let q = shuffled[index];
 
-    speakHindi(q.q);
+    document.getElementById("question").innerText = q.q;
+    document.getElementById("english").innerText = "("+ q.eng +")";
+    document.getElementById("answer").value = "";
+
+    speak(q.q);
+
+    startTimer();
 }
 
-// --------------------------------------
-// CHECK ANSWER
-// --------------------------------------
-function checkAnswer(choice) {
-    const q = questions[index];
+// ---------------- TIMER ------------------
 
-    if (choice === q.ans) {
+function startTimer() {
+    clearInterval(timerInterval);
+    timeLeft = 10;
+    document.getElementById("timer").innerText = timeLeft + " sec";
+
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").innerText = timeLeft + " sec";
+
+        if(timeLeft <= 0) {
+            clearInterval(timerInterval);
+            index++;
+            showQuestion();
+        }
+    }, 1000);
+}
+
+// ---------------- CHECK ANSWER ------------------
+
+function checkAnswer() {
+    let user = document.getElementById("answer").value.trim();
+    let correct = shuffled[index].ans;
+
+    if(correct.includes(user)) {
         score++;
-        speakHindi("सही उत्तर");
+        speak("सही उत्तर");
     } else {
-        speakHindi("गलत उत्तर");
+        speak("ग़लत उत्तर");
     }
-}
 
-// --------------------------------------
-// NEXT QUESTION
-// --------------------------------------
-function nextQuestion() {
     index++;
-    loadQuestion();
+    showQuestion();
 }
 
-// --------------------------------------
-// END QUIZ
-// --------------------------------------
+// ---------------- END QUIZ ------------------
+
 function endQuiz() {
-    document.getElementById("quizBox").style.display="none";
-    document.getElementById("resultBox").style.display="block";
+    clearInterval(timerInterval);
+    document.getElementById("quizBox").style.display = "none";
+    document.getElementById("resultBox").style.display = "block";
 
-    document.getElementById("finalScore").innerHTML =
-        "आपका स्कोर: <b>" + score + "</b> / " + questions.length;
+    document.getElementById("scoreText").innerText =
+        studentName + " का स्कोर: " + score + "/" + questions.length;
 }
 
-// --------------------------------------
-// LOGOUT + SEND REPORT
-// --------------------------------------
-function logout() {
-    sendToSheet({
-        action:"logout",
-        name:name,
-        score:score,
-        attempted:index,
-        time:new Date().toLocaleString()
+// ---------------- LOGOUT + REPORT ------------------
+
+function logoutAndSend() {
+    let data = {
+        name: studentName,
+        score: score,
+        attempted: questions.length,
+        remarks: score < 5 ? "Needs practice" : "Good"
+    };
+
+    fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(data)
     });
 
-    alert("रिपोर्ट Gmail में भेज दी गई");
+    localStorage.removeItem("loggedName");
+    speak("Report sent");
+
     location.reload();
 }
 
-// --------------------------------------
-// HINDI SPEECH
-// --------------------------------------
-function speakHindi(txt) {
-    const sp = new SpeechSynthesisUtterance(txt);
-    sp.lang = "hi-IN";
-    sp.rate = 1;
-    speechSynthesis.speak(sp);
+// ---------------- SPEAK ------------------
+
+function speak(text) {
+    let msg = new SpeechSynthesisUtterance(text);
+    msg.lang = "hi-IN";
+    speechSynthesis.speak(msg);
 }
 
-// --------------------------------------
-// SEND DATA TO GOOGLE APPS SCRIPT
-// --------------------------------------
-const SCRIPT_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLjCiIrW_GqD34UFh4qt0VcQC7Q4lTmQ9UFPSHNM1Iq37medCY1OzfZA95gJDcdthS_Ax2hEhlqG5ZAr3TSxrJVq6znDk8GuaeYGke5DFVR5QuIYsDtes_M9N3PzsVgyt6PujEKsYGAbYMZeLBr7btF2z5Ggv3Crjr-469VOrAdq3vtTAv7mb0utJwdrZK-ige6P_1MHPT5PjigP_ws0xWFl4XxeLeccbzPixQw3LixBYLyWvkeo1EOX5WkoRs9TM5DriRLZdohSUxSuKi3eOmgEAW1UpGFm2AjKiWrQ&lib=MJtJLyBLhYJ-I8iv1Kb4TmqdLM6UFQ5vk";
+// ---------------- AUTO LOGIN ------------------
 
-function sendToSheet(obj) {
-    fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: {"Content-Type": "text/plain;charset=utf-8"},
-        body: JSON.stringify(obj)
-    })
-    .then(r => r.text())
-    .then(d => console.log("GS Response:", d))
-    .catch(err => console.error("Error:", err));
-}
+window.onload = function () {
+    let saved = localStorage.getItem("loggedName");
+
+    if(saved) {
+        studentName = saved;
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("quizBox").style.display = "block";
+    } else {
+        document.getElementById("loginBox").style.display = "block";
+    }
+};
+
 </script>
 
 </body>
 </html>
-
-
-
