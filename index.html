@@ -378,8 +378,8 @@ loginBtn.onclick = () => {
   loginModal.style.display = 'none'; 
   quizArea.style.display = 'block';
 
-  // Preload voices and show warning if Hindi voice missing
-  speechSynthesis.getVoices(); // Trigger voices loading
+  // Preload voices now
+  speechSynthesis.getVoices();
   speechSynthesis.onvoiceschanged = () => {
     const hiVoices = speechSynthesis.getVoices().filter(v => v.lang.includes('hi'));
     if (hiVoices.length === 0) {
@@ -390,27 +390,45 @@ loginBtn.onclick = () => {
   };
 };
 
-window.addEventListener('load', () => {
+function preloadVoices() {
+  return new Promise(resolve => {
+    let voices = speechSynthesis.getVoices();
+    if (voices.length) {
+      resolve(voices);
+    } else {
+      speechSynthesis.onvoiceschanged = () => {
+        voices = speechSynthesis.getVoices();
+        resolve(voices);
+      };
+    }
+  });
+}
+
+window.addEventListener('load', async () => {
   const sessionName = localStorage.getItem('quiz_user_name');
-  if (sessionName) { 
-    loginModal.style.display = 'none'; 
-    quizArea.style.display = 'block';
+  const done = sessionName ? localStorage.getItem('quiz_done_for_' + sessionName) : null;
+  if (sessionName && !done) {
     loginName.value = sessionName;
+    loginModal.style.display = 'none';
+    quizArea.style.display = 'block';
     answerInput.disabled = true;
     speakBtn.disabled = true;
     passBtn.disabled = true;
     replayBtn.disabled = true;
-  } else { 
-    loginModal.style.display = 'flex'; 
+  } else {
+    loginModal.style.display = 'flex';
+    quizArea.style.display = 'none';
   }
-  
-  speechSynthesis.onvoiceschanged = () => {
-    const hiVoices = speechSynthesis.getVoices().filter(v => v.lang.includes('hi'));
-    if (hiVoices.length === 0 && quizArea.style.display !== 'none') {
-      voiceWarn.style.display = 'block';
-    }
-  };
+
+  const voices = await preloadVoices();
+  const hiVoices = voices.filter(v => v.lang.includes('hi'));
+  if (hiVoices.length === 0) {
+    voiceWarn.style.display = 'block';
+  } else {
+    voiceWarn.style.display = 'none';
+  }
 });
 </script>
 </body>
 </html>
+
